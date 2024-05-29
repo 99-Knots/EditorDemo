@@ -1,0 +1,28 @@
+{
+  "name": "editordemo",
+  "version": "1.0.0",
+  "description": "demo for a room editor in babylon.js",
+  "main": "index.ts",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "webpack"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/99-Knots/EditorDemo.git"
+  },
+  "author": "99-Knots",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/99-Knots/EditorDemo/issues"
+  },
+  "homepage": "https://github.com/99-Knots/EditorDemo#readme",
+  "devDependencies": {
+    "@babylonjs/core": "^7.8.2",
+    "ts-loader": "^9.5.1",
+    "typescript": "^5.4.5",
+    "webpack": "^5.91.0",
+    "webpack-cli": "^5.1.4",
+    "webpack-dev-server": "^5.0.4"
+  }
+}
