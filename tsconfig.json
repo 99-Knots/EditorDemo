@@ -14,5 +14,5 @@
     "skipLibCheck": true,    
     "outDir": "./dist"                             
   },
-  "include": ["src"]
+  "include": ["src", "assets"]
 }
