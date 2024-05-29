@@ -1,6 +1,7 @@
 import * as BABYLON from '@babylonjs/core'; 
 import { SkyMaterial } from '@babylonjs/materials';
-import img from '../assets/wood_floor_diff_4k.jpg';
+import img from '../assets/floortiles.png';
+import norm from '../assets/floortiles_normal.png';
 
 const canvas = document.createElement('canvas');
 canvas.id = "render-canvas";
@@ -29,9 +30,14 @@ cube.translate(new BABYLON.Vector3(0, 1, 0), 0.5001);
 const ground = BABYLON.MeshBuilder.CreateGround('ground', {width:15, height:15}, scene);
 const groundMat = new BABYLON.StandardMaterial('groundMaterial', scene);
 const woodTex = new BABYLON.Texture(img, scene);
-woodTex.uScale = ground._width/2;
-woodTex.vScale = ground._height/2;
+woodTex.uScale = ground._width;
+woodTex.vScale = ground._height;
+const normal = new BABYLON.Texture(norm, scene);
+normal.uScale = ground._width;
+normal.vScale = ground._height;
 groundMat.diffuseTexture = woodTex;
+groundMat.bumpTexture = normal;
+groundMat.specularColor = new BABYLON.Color3(0.4, 0.4, 0.4);
 groundMat.backFaceCulling = false;
 ground.material = groundMat;
 
