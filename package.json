@@ -19,6 +19,7 @@
   "homepage": "https://github.com/99-Knots/EditorDemo#readme",
   "devDependencies": {
     "@babylonjs/core": "^7.8.2",
+    "@babylonjs/materials": "^7.8.2",
     "ts-loader": "^9.5.1",
     "typescript": "^5.4.5",
     "webpack": "^5.91.0",
