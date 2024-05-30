@@ -1,4 +1,5 @@
 const path = require('path');
+const WebpackObfuscator = require('webpack-obfuscator');
 
 module.exports = {
   entry: './src/index.ts',
@@ -17,15 +18,32 @@ module.exports = {
         test: /\.(png|svg|jpg|jpeg|gif)$/i,
         type: 'asset/resource',
       },
+      {
+        test: /\.js$/,
+        exclude: [ 
+            path.resolve(__dirname, 'bundle.js') 
+        ],
+        enforce: 'post',
+        use: { 
+            loader: WebpackObfuscator.loader, 
+            options: {
+                rotateStringArray: true
+            }
+        }
+       }
     ]
   },
   resolve: {
     extensions: ['.ts', '.tsx', '.js']
   },
+  plugins: [
+    new WebpackObfuscator ({
+        rotateStringArray: true
+    }, ['bundle.js'])
+  ],
   devServer: {
     contentBase: path.join(__dirname, 'dist'),
     compress: true,
     port: 9000
   },
-  mode: "development"
 };

@@ -4,8 +4,8 @@
   "description": "demo for a room editor in babylon.js",
   "main": "index.ts",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "webpack"
+    "test": "webpack --mode development",
+    "build": "webpack --mode production"
   },
   "repository": {
     "type": "git",
@@ -20,10 +20,12 @@
   "devDependencies": {
     "@babylonjs/core": "^7.8.2",
     "@babylonjs/materials": "^7.8.2",
+    "javascript-obfuscator": "^4.1.0",
     "ts-loader": "^9.5.1",
     "typescript": "^5.4.5",
     "webpack": "^5.91.0",
     "webpack-cli": "^5.1.4",
-    "webpack-dev-server": "^5.0.4"
+    "webpack-dev-server": "^5.0.4",
+    "webpack-obfuscator": "^3.5.1"
   }
 }
