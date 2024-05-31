@@ -24,20 +24,22 @@ const scene = new Scene(engine);
 const camera = new ArcRotateCamera('camera1', 0.5, 0.9, 10, Vector3.Zero(), scene);
 camera.attachControl(canvas, true);
 
+const sunPosition = new Vector3(0, 100, -100);
 const skyMaterial = new SkyMaterial("skyMaterial", scene);
 skyMaterial.backFaceCulling = false;
-skyMaterial.inclination = 0.3;
+skyMaterial.useSunPosition = true;
+skyMaterial.sunPosition = sunPosition;
 
 const skybox = MeshBuilder.CreateBox("skyBox", { size: 1000.0 }, scene);
 skybox.material = skyMaterial;
 
-const light = new HemisphericLight('light1', new Vector3(0, 1, 1), scene);
+const light = new HemisphericLight('hemisphereLight', sunPosition, scene);
 
 const cube = MeshBuilder.CreateBox('box', {size: 1}, scene);
-cube.translate(new Vector3(0, 1, 0), 0.5001);
+cube.translate(new Vector3(0, 1, 0), 0.5001);   // avoid clipping with ground
 
 const ground = MeshBuilder.CreateGround('ground', {width:15, height:15}, scene);
-const groundMat = new StandardMaterial('groundMaterial', scene);
+const groundMat = new StandardMaterial('groundMat', scene);
 const woodTex = new Texture(img, scene);
 woodTex.uScale = ground._width;
 woodTex.vScale = ground._height;

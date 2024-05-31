@@ -8,7 +8,7 @@
     "module": "commonjs",                                
     "esModuleInterop": true,                             
     "forceConsistentCasingInFileNames": true,  
-    "sourceMap": false,          
+    "sourceMap": false,     
 
     /* Type Checking */
     "strict": true,                                      

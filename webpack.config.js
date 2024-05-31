@@ -27,7 +27,8 @@ module.exports = {
         use: { 
             loader: WebpackObfuscator.loader, 
             options: {
-                rotateStringArray: true
+                rotateStringArray: true,
+                compact: true,
             }
         }
        }
@@ -38,7 +39,8 @@ module.exports = {
   },
   plugins: [
     new WebpackObfuscator ({
-        rotateStringArray: true
+        rotateStringArray: true,
+        compact: true,
     }, ['bundle.js'])
   ],
   devServer: {
