@@ -9,8 +9,8 @@ import { StandardMaterial } from '@babylonjs/core/Materials/standardMaterial';
 import { Texture } from '@babylonjs/core/Materials/Textures/texture';
 import { Tools } from '@babylonjs/core/Misc/tools'
 
-import img from '../assets/floortiles.png';
-import norm from '../assets/floortiles_normal.png';
+import floor_tex from '../assets/floortiles.png';
+import floor_norm from '../assets/floortiles_normal.png';
 
 
 const canvas = document.createElement('canvas');
@@ -37,35 +37,43 @@ const setupCamera = () => {
 	arcRotCamera.attachControl(canvas, true);
 }
 
+const setupSky = () => {
+	const sunPosition = new Vector3(50, 100, -100);
+
+	const skyMaterial = new SkyMaterial('skyMat', scene);
+	skyMaterial.backFaceCulling = false;
+	skyMaterial.useSunPosition = true;
+	skyMaterial.sunPosition = sunPosition;
+
+	const skybox = MeshBuilder.CreateBox('skyBox', { size: 1000.0 }, scene);
+	skybox.material = skyMaterial;
+
+	const light = new HemisphericLight('hemisphereLight', sunPosition, scene);
+}
+
+const setupFloor = () => {
+	const ground = MeshBuilder.CreateGround('ground', {width:15, height:15}, scene);
+	const groundMat = new StandardMaterial('groundMat', scene);
+	const tileTex = new Texture(floor_tex, scene);
+	tileTex.uScale = ground._width;
+	tileTex.vScale = ground._height;
+	const tileNormal = new Texture(floor_norm, scene);
+	tileNormal.uScale = ground._width;
+	tileNormal.vScale = ground._height;
+	groundMat.diffuseTexture = tileTex;
+	groundMat.bumpTexture = tileNormal;
+	groundMat.specularColor = new Color3(0.4, 0.4, 0.4);
+	groundMat.backFaceCulling = false;
+	ground.material = groundMat;
+	
+}
+
 setupCamera();
-
-const sunPosition = new Vector3(50, 100, -100);
-const skyMaterial = new SkyMaterial('skyMat', scene);
-skyMaterial.backFaceCulling = false;
-skyMaterial.useSunPosition = true;
-skyMaterial.sunPosition = sunPosition;
-
-const skybox = MeshBuilder.CreateBox('skyBox', { size: 1000.0 }, scene);
-skybox.material = skyMaterial;
-
-const light = new HemisphericLight('hemisphereLight', sunPosition, scene);
+setupSky();
+setupFloor();
 
 const cube = MeshBuilder.CreateBox('box', {size: 1}, scene);
 cube.translate(new Vector3(0, 1, 0), 0.5001);   // avoid clipping with ground
-
-const ground = MeshBuilder.CreateGround('ground', {width:15, height:15}, scene);
-const groundMat = new StandardMaterial('groundMat', scene);
-const woodTex = new Texture(img, scene);
-woodTex.uScale = ground._width;
-woodTex.vScale = ground._height;
-const normal = new Texture(norm, scene);
-normal.uScale = ground._width;
-normal.vScale = ground._height;
-groundMat.diffuseTexture = woodTex;
-groundMat.bumpTexture = normal;
-groundMat.specularColor = new Color3(0.4, 0.4, 0.4);
-groundMat.backFaceCulling = false;
-ground.material = groundMat;
 
 engine.runRenderLoop(() => {
 		scene.render();
