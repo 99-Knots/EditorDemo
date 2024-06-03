@@ -23,34 +23,16 @@ module.exports = {
       {
         test: /\.(png|svg|jpg|jpeg|gif)$/i,
         type: 'asset/resource',
+      },{
+        test: /\.css$/i,
+        use: ['style-loader', 'css-loader'],
       },
-      //{
-      //  test: /\.js$/,
-      //  exclude: [ 
-      //      path.resolve(__dirname, 'bundle.js') 
-      //  ],
-      //  enforce: 'post',
-      //  use: { 
-      //      loader: WebpackObfuscator.loader, 
-      //      options: {
-      //          rotateStringArray: true,
-      //          compact: true,
-      //      }
-      //  }
-      // }
     ]
   },
   plugins: [
     new HtmlWebpackPlugin({
       template: './public/index.html',
     }),
-    //new WebpackObfuscator ({
-    //    rotateStringArray: true,
-    //    compact: true,
-    //}, ['bundle.js']),
-    //new webpack.ProvidePlugin({
-    //  process: 'process/browser',
-    //}),
   ],
   devServer: {
     static: {

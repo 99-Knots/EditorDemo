@@ -1,2 +1,2 @@
 # EditorDemo
-small demo for a babylon.js room editor
+small demo for a babylon.js exibition editor

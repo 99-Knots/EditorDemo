@@ -1,6 +1,21 @@
 import React from 'react';
-import ReactDOM from 'react-dom';
-import {setupEngine} from './components/main'
+import { createRoot } from 'react-dom/client';
+import { Canvas, CanvasHandle } from './components/canvas';
+import './style.css'
 
-setupEngine();
-ReactDOM.render(<h1>React Test</h1>, document.getElementById('react-root'));
+
+function Test() {
+    const canvasHandle = React.useRef<CanvasHandle>();
+    React.useEffect(() => {
+        canvasHandle.current.loadScene();
+    }, [])
+    return (
+        <Canvas ref={canvasHandle}/>
+    )
+}
+
+const rootElement = document.getElementById('react-root');
+if (!!rootElement) {
+    const root = createRoot(rootElement);
+    root.render(<Test />);
+}
