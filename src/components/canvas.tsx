@@ -9,6 +9,10 @@ import { SkyMaterial } from '@babylonjs/materials/sky';
 import { StandardMaterial } from '@babylonjs/core/Materials/standardMaterial';
 import { Texture } from '@babylonjs/core/Materials/Textures/texture';
 import { Tools } from '@babylonjs/core/Misc/tools'
+import { PointerEventTypes } from "@babylonjs/core/Events/pointerEvents";
+import { Ray } from "@babylonjs/core/Culling/ray";
+import { HighlightLayer } from '@babylonjs/core/Layers/highlightLayer';
+import { Mesh } from "@babylonjs/core/Meshes/mesh";
 
 import floor_tex from '../../assets/floortiles.png';
 import floor_norm from '../../assets/floortiles_normal.png';
@@ -92,6 +96,7 @@ const CanvasRenderer: React.ForwardRefRenderFunction<CanvasHandle, CanvasProps> 
     const addTestObject = async () => {
         const cube = MeshBuilder.CreateBox('box', {size: 1}, scene.current);
         cube.translate(new Vector3(0, 1, 0), 0.5001);   // avoid clipping with ground
+        cube.metadata = {selectable: true}
     }
 
     const setupEngine = async () => {
@@ -104,6 +109,30 @@ const CanvasRenderer: React.ForwardRefRenderFunction<CanvasHandle, CanvasProps> 
         await setupSky();
         await setupFloor();
         await addTestObject();
+    }
+
+    const setupGizmo = async () => {
+        let pressedTimestamp = 0;
+        const ray = new Ray(Vector3.Zero(), Vector3.Zero())
+        const hlLayer = new HighlightLayer('hlLayer', scene.current);
+        scene.current.onPointerObservable.add((pointerinfo) => {
+            if (pointerinfo.type == PointerEventTypes.POINTERDOWN && pointerinfo.event.button == 0) {
+                pressedTimestamp = Date.now();
+            }
+
+            if (pointerinfo.type == PointerEventTypes.POINTERUP && pointerinfo.event.button == 0) {
+
+                let elapsedSincePressed = Date.now() - pressedTimestamp;
+                if (elapsedSincePressed < 200) {
+                    let node = pointerinfo.pickInfo.pickedMesh;
+                    hlLayer.removeAllMeshes();
+                    if (node.metadata?.selectable) {
+                        let n = node as Mesh;
+                        hlLayer.addMesh(n, new Color3(255, 255, 255));
+                    }
+                };
+            }
+        });
     }
 
     const runLoop = async () => {
@@ -123,15 +152,14 @@ const CanvasRenderer: React.ForwardRefRenderFunction<CanvasHandle, CanvasProps> 
         async loadScene() {
             await setupEngine();
             await setupScene();
+            await setupGizmo();
             await runLoop();
         }
     }
     React.useImperativeHandle(env, () => handle);
 
     return (
-        <div>
-            <canvas className='babylon-canvas' ref={canvas} ></canvas>
-        </div>
+        <canvas className='babylon-canvas' ref={canvas} ></canvas>
     )
 }
 

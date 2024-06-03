@@ -4,7 +4,7 @@ import { Canvas, CanvasHandle } from './components/canvas';
 import './style.css'
 
 
-function Test() {
+function App() {
     const canvasHandle = React.useRef<CanvasHandle>();
     React.useEffect(() => {
         canvasHandle.current.loadScene();
@@ -17,5 +17,5 @@ function Test() {
 const rootElement = document.getElementById('react-root');
 if (!!rootElement) {
     const root = createRoot(rootElement);
-    root.render(<Test />);
+    root.render(<App />);
 }
