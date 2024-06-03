@@ -1,16 +1,22 @@
 const path = require('path');
-const WebpackObfuscator = require('webpack-obfuscator');
+const HtmlWebpackPlugin = require('html-webpack-plugin');
+//const WebpackObfuscator = require('webpack-obfuscator');
+//const webpack = require('webpack');
+//new webpack.EnvironmentPlugin(['NODE_ENV', 'DEBUG']);
 
 module.exports = {
-  entry: './src/index.ts',
+  entry: './src/index.tsx',
   output: {
     filename: 'bundle.js',
     path: path.resolve(__dirname, 'dist')
   },
+  resolve: {
+    extensions: ['.ts', '.tsx', '.js']
+  },
   module: {
     rules: [
       {
-        test: /\.ts$/,
+        test: /\.(ts|tsx)$/,
         use: 'ts-loader',
         exclude: /node_modules/
       },
@@ -18,34 +24,40 @@ module.exports = {
         test: /\.(png|svg|jpg|jpeg|gif)$/i,
         type: 'asset/resource',
       },
-      {
-        test: /\.js$/,
-        exclude: [ 
-            path.resolve(__dirname, 'bundle.js') 
-        ],
-        enforce: 'post',
-        use: { 
-            loader: WebpackObfuscator.loader, 
-            options: {
-                rotateStringArray: true,
-                compact: true,
-            }
-        }
-       }
+      //{
+      //  test: /\.js$/,
+      //  exclude: [ 
+      //      path.resolve(__dirname, 'bundle.js') 
+      //  ],
+      //  enforce: 'post',
+      //  use: { 
+      //      loader: WebpackObfuscator.loader, 
+      //      options: {
+      //          rotateStringArray: true,
+      //          compact: true,
+      //      }
+      //  }
+      // }
     ]
   },
-  resolve: {
-    extensions: ['.ts', '.tsx', '.js']
-  },
   plugins: [
-    new WebpackObfuscator ({
-        rotateStringArray: true,
-        compact: true,
-    }, ['bundle.js'])
+    new HtmlWebpackPlugin({
+      template: './public/index.html',
+    }),
+    //new WebpackObfuscator ({
+    //    rotateStringArray: true,
+    //    compact: true,
+    //}, ['bundle.js']),
+    //new webpack.ProvidePlugin({
+    //  process: 'process/browser',
+    //}),
   ],
   devServer: {
-    contentBase: path.join(__dirname, 'dist'),
+    static: {
+      directory: path.join(__dirname, 'dist'),
+    },
     compress: true,
-    port: 9000
+    port: 3000,
+    open: true,
   },
 };

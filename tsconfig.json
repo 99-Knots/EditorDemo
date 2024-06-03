@@ -1,19 +1,16 @@
 {
   "compilerOptions": {
-    /* Language and Environment */
-    "target": "es2016",                                  
-    // "lib": [],                                        
-
-    /* Modules */
-    "module": "commonjs",                                
-    "esModuleInterop": true,                             
-    "forceConsistentCasingInFileNames": true,  
-    "sourceMap": false,     
-
-    /* Type Checking */
-    "strict": true,                                      
-    "skipLibCheck": true,    
-    "outDir": "./dist"                             
+    "target": "es2016", 
+    "lib": ["dom", "dom.iterable", "esnext"],                            
+    "skipLibCheck": true,
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    "sourceMap": false,
+    "strict": true,
+    "jsx": "react",
+    "outDir": "./dist"
   },
   "include": ["src", "assets"]
 }
