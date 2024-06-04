@@ -74,6 +74,7 @@ const CanvasRenderer: React.ForwardRefRenderFunction<CanvasHandle, CanvasProps> 
 
 		const skybox = MeshBuilder.CreateBox('skyBox', { size: 1000.0 }, scene.current);
 		skybox.material = skyMaterial;
+        skybox.metadata = {immovable: true}
 
 		const light = new HemisphericLight('hemisphereLight', sunPosition, scene.current);
 	}
@@ -92,12 +93,16 @@ const CanvasRenderer: React.ForwardRefRenderFunction<CanvasHandle, CanvasProps> 
 		groundMat.specularColor = new Color3(0.4, 0.4, 0.4);
 		groundMat.backFaceCulling = false;
 		ground.material = groundMat;
+        ground.metadata = {immovable: true};
 	}
 
     const addTestObject = async () => {
         const cube = MeshBuilder.CreateBox('box', {size: 1}, scene.current);
         cube.translate(new Vector3(0, 1, 0), 0.5001);   // avoid clipping with ground
-        cube.metadata = {selectable: true}
+        cube.metadata = {immovable: false};
+        const sphere = MeshBuilder.CreateSphere('sphere', {diameter: 1}, scene.current);
+        sphere.translate(new Vector3(2, 0.5001, 0), 1);
+        sphere.metadata = {immovable: false};
     }
 
     const setupEngine = async () => {
@@ -127,7 +132,7 @@ const CanvasRenderer: React.ForwardRefRenderFunction<CanvasHandle, CanvasProps> 
                 if (elapsedSincePressed < 200) {
                     let node = pointerinfo.pickInfo.pickedMesh;
                     gizmo.current.removeAllNodes();
-                    if (node.metadata?.selectable) {
+                    if (!node.metadata?.immovable) {
                         gizmo.current.addNode(node);
                     }
                 };
