@@ -11,8 +11,8 @@ import { Texture } from '@babylonjs/core/Materials/Textures/texture';
 import { Tools } from '@babylonjs/core/Misc/tools'
 import { PointerEventTypes } from "@babylonjs/core/Events/pointerEvents";
 import { Ray } from "@babylonjs/core/Culling/ray";
-import { HighlightLayer } from '@babylonjs/core/Layers/highlightLayer';
-import { Mesh } from "@babylonjs/core/Meshes/mesh";
+
+import { GizmoManager } from "./gizmoManager";
 
 import floor_tex from '../../assets/floortiles.png';
 import floor_norm from '../../assets/floortiles_normal.png';
@@ -44,7 +44,8 @@ const CanvasRenderer: React.ForwardRefRenderFunction<CanvasHandle, CanvasProps> 
 
     const canvas = React.useRef<HTMLCanvasElement>(null);
     const engine = React.useRef<Engine>(null);
-    const scene = React.useRef<Scene|null>(null);
+    const scene = React.useRef<Scene>(null);
+    const gizmo = React.useRef<GizmoManager>(null);
 
 
     const setupCamera = async () => {
@@ -112,9 +113,9 @@ const CanvasRenderer: React.ForwardRefRenderFunction<CanvasHandle, CanvasProps> 
     }
 
     const setupGizmo = async () => {
+        gizmo.current =  new GizmoManager(scene.current, 3.5, 1);
         let pressedTimestamp = 0;
-        const ray = new Ray(Vector3.Zero(), Vector3.Zero())
-        const hlLayer = new HighlightLayer('hlLayer', scene.current);
+        const ray = new Ray(Vector3.Zero(), Vector3.Zero()) // necessary to ensure import of Ray
         scene.current.onPointerObservable.add((pointerinfo) => {
             if (pointerinfo.type == PointerEventTypes.POINTERDOWN && pointerinfo.event.button == 0) {
                 pressedTimestamp = Date.now();
@@ -125,10 +126,9 @@ const CanvasRenderer: React.ForwardRefRenderFunction<CanvasHandle, CanvasProps> 
                 let elapsedSincePressed = Date.now() - pressedTimestamp;
                 if (elapsedSincePressed < 200) {
                     let node = pointerinfo.pickInfo.pickedMesh;
-                    hlLayer.removeAllMeshes();
+                    gizmo.current.removeAllNodes();
                     if (node.metadata?.selectable) {
-                        let n = node as Mesh;
-                        hlLayer.addMesh(n, new Color3(255, 255, 255));
+                        gizmo.current.addNode(node);
                     }
                 };
             }

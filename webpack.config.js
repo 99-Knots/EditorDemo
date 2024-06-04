@@ -1,14 +1,12 @@
 const path = require('path');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
-//const WebpackObfuscator = require('webpack-obfuscator');
-//const webpack = require('webpack');
-//new webpack.EnvironmentPlugin(['NODE_ENV', 'DEBUG']);
 
 module.exports = {
   entry: './src/index.tsx',
   output: {
     filename: 'bundle.js',
-    path: path.resolve(__dirname, 'dist')
+    path: path.resolve(__dirname, 'dist'),
+    clean: true
   },
   resolve: {
     extensions: ['.ts', '.tsx', '.js']
