@@ -65,7 +65,6 @@ export class GizmoManager {
             scale:      this.root.scaling.clone(),
         }
 
-
         this.inWorldSpace = false;
         this.nodes = [];
 
@@ -131,14 +130,12 @@ export class GizmoManager {
     }
 
     public addNode(node: TransformNode) {
-        if (!this.nodes.find(n => n[0].id == node.id)) {    // only add node if it wasn't already attached
+        if (!this.nodes.find(n => n[0].uniqueId == node.uniqueId)) {    // only add node if it wasn't already attached
             node.computeWorldMatrix(true);
             // add the node to the list of attached nodes, together with its world matrix
-            if (node.rotationQuaternion == null) {
-                node.rotationQuaternion = Quaternion.Identity();
-            }
             this.nodes.push([node, node.getWorldMatrix().clone()]);
             this.hlLayer.addMesh(node as Mesh, new Color3(1, 0.9, 0));
+
             this.setRootPosition();
             this.setRootRotation();
             this.currentGizmo.attachedNode = this.root;
@@ -149,7 +146,7 @@ export class GizmoManager {
     }
 
     public removeNode(node: TransformNode) {
-        let i = this.nodes.indexOf(this.nodes.find(n => n[0].name == node.name));
+        let i = this.nodes.indexOf(this.nodes.find(n => n[0].uniqueId == node.uniqueId));
         this.hlLayer.removeMesh(node as Mesh);
         this.nodes.splice(i, 1);
         if (this.nodes.length < 1) {
@@ -171,73 +168,60 @@ export class GizmoManager {
     }
 
     private initPositionGizmo() {
-        const startTranslateAxisDrag = () => {
-            this.initialTransform.position = this.root.position.clone();
-        }
+        this.positionGizmo.planarGizmoEnabled = true;
 
-        const onTranslateAxisDrag = () => {
+        this.positionGizmo.onDragStartObservable.add(() => {
+            this.initialTransform.position = this.root.position.clone();
+        });
+
+        this.positionGizmo.onDragObservable.add(() => {
             const dist = this.root.position.subtract(this.initialTransform.position)
-            
             const Tmat = toTranslationMatrix(dist);
             this.nodes.forEach(n => {
                 n[0].freezeWorldMatrix(n[1].multiply(Tmat))
             });
-        }
+        });
 
-        const endTranslateAxisDrag = () => {
+        this.positionGizmo.onDragEndObservable.add(() => {
             const cList = [];
             this.nodes.forEach( n => { 
                 cList.push(new TransformCommand(n[0], n[1])); 
                 n[1] = n[0].getWorldMatrix().clone();
             });
             Commands().execute(new GroupCommand(cList));
-        }
-
-        this.positionGizmo.planarGizmoEnabled = true;
-
-        this.positionGizmo.onDragStartObservable.add(startTranslateAxisDrag);
-        this.positionGizmo.onDragObservable.add(onTranslateAxisDrag);
-        this.positionGizmo.onDragEndObservable.add(endTranslateAxisDrag);
+        });
     }
 
     private initRotationGizmo() {
-
-        const startRotationAxisDrag = () => {
+        this.rotationGizmo.onDragStartObservable.add(() => {
             this.initialTransform.rotation = this.root.rotationQuaternion.clone();
-        }
+        });
 
-        const onRotationAxisDrag = () => {
+        this.rotationGizmo.onDragObservable.add(() => {
             const qinv = this.initialTransform.rotation.invert();
             const quat = this.root.rotationQuaternion.multiply(qinv);   // quaternion for the rotation of the root since drag start
-
-            //const axis = new BabylonJS.Vector3(quat.x, quat.y, quat.z).normalize();
-            //const angle = Math.acos(quat.w) * 2;
 
             this.nodes.forEach(n => {   // reset to state before rotation and then do entire rotation anew
                 const dist = n[1].getTranslation().add(this.root.position.subtract(n[1].getTranslation()));
                 let Rmat = Matrix.Identity();
                 quat.toRotationMatrix(Rmat);
 
-                let mat = n[1].multiply(toTranslationMatrix(dist.negate()));  // move to Origin
-                mat = mat.multiply(Rmat);                                   // rotate
-                mat = mat.multiply(toTranslationMatrix(dist))                 // undo previous translation
+                let mat = n[1].multiply(toTranslationMatrix(dist.negate()));    // move to Origin
+                mat = mat.multiply(Rmat);                                       // rotate
+                mat = mat.multiply(toTranslationMatrix(dist))                   // undo previous translation
                 n[0].freezeWorldMatrix(mat);
             });
-        }
+        });
 
-        const endRotationAxisDrag = () => {
+        this.rotationGizmo.onDragEndObservable.add(() => {
             const cList = [];
             this.nodes.forEach( n => { 
-                cList.push(new TransformCommand(n[0], n[1])); 
+                cList.push(new TransformCommand(n[0], n[1]));
                 n[1] = n[0].getWorldMatrix().clone();
             });
             Commands().execute(new GroupCommand(cList));
             this.setRootRotation();     // reset the root to a neutral orientation
-        }
-
-        this.rotationGizmo.onDragStartObservable.add(startRotationAxisDrag);
-        this.rotationGizmo.onDragObservable.add(onRotationAxisDrag);
-        this.rotationGizmo.onDragEndObservable.add(endRotationAxisDrag);
+        });
     }
 }
 
@@ -271,11 +255,11 @@ class CustomBoundingBoxGizmo extends BoundingBoxGizmo {
      */
     constructor(color: Color3, utilLayer: UtilityLayerRenderer, gizmoManager: GizmoManager) {
         super(color, utilLayer)
-        this._hoverColoredMaterial.emissiveColor = new Color3(193 / 255, 0, 42 / 255);
+        this._hoverColoredMaterial.emissiveColor = new Color3(153 / 255, 0, 153 / 255);
         this.gizmoManager = gizmoManager;
         this._scaleFromCenter = true;
         this._scaleDragSpeed *= 2;
-        this.scaleBoxSize = 0.05;
+        this.scaleBoxSize = 0.08;
 
         // 'disable' rotation spheres by removing them from scene, since this is a scale-only gizmo!
         this._rootMesh.removeChild(this._rotateSpheresParent);
@@ -336,15 +320,14 @@ class CustomBoundingBoxGizmo extends BoundingBoxGizmo {
 
                 const scaleAmount = axis.scale(dragFactor);                                     // how much the object's scale changes along x,y,z directions
                 const newDist = initialDist.add(center_boxDirection.multiply(scaleAmount));     // projected distance between the center and the dragged box afterwards
-                const ratio = newDist.divide(initialDist);                                      // scale ratio relative to the previous scale
+                const ratio = newDist.divide(initialDist);    
+                const Smat = new Matrix();
+                Smat.setRowFromFloats(0, Math.abs(ratio.x), 0, 0, 0);
+                Smat.setRowFromFloats(1, 0, Math.abs(ratio.y), 0, 0);
+                Smat.setRowFromFloats(2, 0, 0, Math.abs(ratio.z), 0);
+                Smat.setRowFromFloats(3, 0,   0,   0,   1);                                  // scale ratio relative to the previous scale
 
                 nodes.forEach( n => {
-                    const Smat = new Matrix();
-                    Smat.setRowFromFloats(0, ratio.x, 0, 0, 0);
-                    Smat.setRowFromFloats(1, 0, ratio.y, 0, 0);
-                    Smat.setRowFromFloats(2, 0, 0, ratio.z, 0);
-                    Smat.setRowFromFloats(3, 0,   0,   0,   1);
-
                     const Rmat = this.attachedNode.getWorldMatrix().getRotationMatrix()
                     const dist = n[1].getTranslation().add(center.subtract(n[1].getTranslation()));
 
@@ -354,11 +337,9 @@ class CustomBoundingBoxGizmo extends BoundingBoxGizmo {
                     mat = mat.multiply(Rmat);                                       // undo previous rotation
                     mat = mat.multiply(toTranslationMatrix(dist));                  // undo previous translation
 
-                    console.log(n[0].getWorldMatrix());
                     n[0].freezeWorldMatrix(mat);
-                    console.log(n[0].getWorldMatrix());
                 });
-
+                boxes[i].material = this.hoverMaterial;
                 this.updateGizmo();
 
             });
@@ -370,6 +351,8 @@ class CustomBoundingBoxGizmo extends BoundingBoxGizmo {
                     n[1] = n[0].getWorldMatrix().clone();
                 });
                 Commands().execute(new GroupCommand(cList));
+                boxes[i].material = this.coloredMaterial;
+                this.updateGizmo();
             });
 
             boxes[i].addBehavior(dragBehavior);
@@ -394,8 +377,6 @@ class CustomBoundingBoxGizmo extends BoundingBoxGizmo {
 
             nodes[0][0].freezeWorldMatrix(nodes[0][0].getWorldMatrix().multiply(Rmat));         // return to original rotation
             this.currentMinMaxAA = nodes[0][0].getHierarchyBoundingVectors(true);
-
-            nodes[0][0].unfreezeWorldMatrix();
 
             if (nodes.length > 1) {     // for more then one object the bounding box will always be axis aligned
                 nodes.forEach(n => {
