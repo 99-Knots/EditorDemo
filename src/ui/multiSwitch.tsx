@@ -15,9 +15,17 @@ export const MovingButton = (props: {
 }
 
 export const RadialButton = (props: {
-    //onClick: (val: any) => void,
+    radius: number,
+    angle: number,
+    onClick: (val: any) => void,
+    children?: React.ReactNode
 }) => {
+    let x = Math.sin(Math.PI/180 * props.angle)*props.radius;
+    let y = Math.cos(Math.PI/180 * props.angle)*props.radius;
+    
     return (
-        <div className="test centered" style={{top: '2em'}}>Test</div>
+        <div className="gizmo-mode-switch centered round" style={{top: -y, left: x}} onClick={props.onClick}>
+            {props.children}
+        </div>
     )
 }

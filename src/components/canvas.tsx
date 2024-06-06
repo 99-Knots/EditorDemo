@@ -13,7 +13,7 @@ import { PointerEventTypes } from "@babylonjs/core/Events/pointerEvents";
 import { Ray } from "@babylonjs/core/Culling/ray";
 import { MovingButton, RadialButton } from "../ui/multiSwitch";
 
-import { GizmoManager } from "./GizmoManager";
+import { GizmoManager, GizmoMode } from "./GizmoManager";
 
 import floor_tex from '../../assets/floortiles.png';
 import floor_norm from '../../assets/floortiles_normal.png';
@@ -48,8 +48,9 @@ const CanvasRenderer: React.ForwardRefRenderFunction<CanvasHandle, CanvasProps> 
     const scene = React.useRef<Scene>(null);
     const gizmo = React.useRef<GizmoManager>(null);
     
+    const [gizmoMode, setGizmoMode] = React.useState(GizmoMode.Translate);
     const [rootPos, setRootPos] = React.useState(Vector3.Zero());
-    const [hiddenSelection, setHiddenSelection] = React.useState(true);
+    const [hiddenSelection, setHiddenSelection] = React.useState(undefined);
     const [cameraChange, setCameraChange] = React.useState(false);
     const [dragging, setDragging] = React.useState(false);
 
@@ -64,6 +65,10 @@ const CanvasRenderer: React.ForwardRefRenderFunction<CanvasHandle, CanvasProps> 
     React.useEffect(() => {
         setHiddenSelection(dragging || cameraChange || !gizmo.current?.isActive())
     }, [dragging, cameraChange, gizmo.current?.isActive()])
+
+    React.useEffect(() => {
+        gizmo.current?.changeMode(gizmoMode)
+    }, [gizmoMode]);
 
     const setupCamera = async () => {
 		const arcRotCamera = new ArcRotateCamera(
@@ -194,11 +199,17 @@ const CanvasRenderer: React.ForwardRefRenderFunction<CanvasHandle, CanvasProps> 
     }
     React.useImperativeHandle(env, () => handle);
 
+    const r = 70;
+
     return (
         <div className="main"> 
             <canvas className='babylon-canvas' ref={canvas} />
             <MovingButton x={rootPos.x} y={rootPos.y} hidden={hiddenSelection}>
-                <RadialButton></RadialButton>
+                <RadialButton angle={0} radius={r} onClick={() => {setGizmoMode(GizmoMode.Translate)}}>T</RadialButton>
+                <RadialButton angle={45} radius={r} onClick={() => {setGizmoMode(GizmoMode.Rotate)}}>R</RadialButton>
+                <RadialButton angle={90} radius={r} onClick={() => {setGizmoMode(GizmoMode.Scale)}}>S</RadialButton>
+                <RadialButton angle={180} radius={r} onClick={() => {}}>0</RadialButton>
+                <RadialButton angle={210} radius={r} onClick={() => {}}>0</RadialButton>
             </MovingButton>
         </div>
     )

@@ -12,8 +12,8 @@
 
 .gizmo-mode-switch {
     position: absolute;
-    top: 1em;
-    right: 1em;
+    padding: 0.3em;
+    background-color: darkgray;
 }
 
 .selected {
@@ -22,15 +22,20 @@
 }
 
 .gizmo-gui-center {
+    user-select: none;
     position: absolute;
-    border-radius: 50%;
 }
 
 .centered {
     transform: translate(-50%, -50%);
 }
 
+.round {
+    border-radius: 50%;
+}
+
 .test {
     position: absolute;
     background-color: blueviolet;
+    padding: 0.3em;
 }
