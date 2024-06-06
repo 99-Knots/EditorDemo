@@ -37,6 +37,13 @@ const toTranslationMatrix = (v: Vector3) => {
     return m;
 }
 
+const projectToScreen = (p: Vector3, scene: Scene) => {
+    
+    const engine = scene.getEngine()
+    const camera = scene._activeCamera;
+    return Vector3.Project(p, Matrix.Identity(), scene.getTransformMatrix(), camera.viewport.toGlobal(engine.getRenderWidth(), engine.getRenderHeight()))
+}
+
 
 export class GizmoManager {
 
@@ -117,11 +124,7 @@ export class GizmoManager {
     }
 
     public getRootScreenPosition() {
-        const scene = this.root.getScene();
-        const engine = scene.getEngine()
-        const camera = scene._activeCamera;
-        const vec = Vector3.Project(this.root.position, Matrix.Identity(), scene.getTransformMatrix(), camera.viewport.toGlobal(engine.getRenderWidth(), engine.getRenderHeight()))
-        return vec
+        return projectToScreen(this.root.position, this.root.getScene());
     }
 
     public setRootPosition() {

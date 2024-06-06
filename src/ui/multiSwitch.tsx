@@ -8,7 +8,7 @@ export const MovingButton = (props: {
 }) => {
 
     return (
-        <div className="gizmo-gui-center centered" style={{top: props.y, left: props.x, display: props.hidden?"none":"block"}}>
+        <div className="gizmo-gui-center centered" style={{top: props.y??0, left: props.x??0, display: props.hidden?"none":"block"}}>
             {props.children}
         </div>
     )

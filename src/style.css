@@ -14,6 +14,13 @@
     position: absolute;
     padding: 0.3em;
     background-color: darkgray;
+    height: 1em;
+    width: 1em;
+}
+
+.bi { 
+    display: flex;
+    align-items: center;
 }
 
 .selected {
