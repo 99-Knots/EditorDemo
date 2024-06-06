@@ -52,7 +52,7 @@ export class GizmoManager {
     private hlLayer: HighlightLayer;
 
 
-    constructor(scene: Scene, thickness?: number, scale?: number) {
+    constructor(setDragging: (b: boolean)=>void, scene: Scene, thickness?: number, scale?: number) {
         this.root = new TransformNode('GizmoRoot', scene);
         this.layer = new UtilityLayerRenderer(scene);
         this.hlLayer = new HighlightLayer('SelectionHLLayer', scene);
@@ -68,18 +68,25 @@ export class GizmoManager {
         this.inWorldSpace = false;
         this.nodes = [];
 
+
         this.positionGizmo = new PositionGizmo(this.layer, thickness ?? 1);
         this.positionGizmo.scaleRatio = scale ?? 1;
+        this.positionGizmo.onDragStartObservable.add(() => {setDragging(true)});
+        this.positionGizmo.onDragEndObservable.add(() => {setDragging(false)})
         this.initPositionGizmo();
 
         this.rotationGizmo = new RotationGizmo(this.layer, undefined, undefined, thickness ?? 1);
         this.rotationGizmo.scaleRatio = scale ?? 1;
+        this.rotationGizmo.onDragStartObservable.add(() => {setDragging(true)});
+        this.rotationGizmo.onDragEndObservable.add(() => {setDragging(false)})
         this.initRotationGizmo();
 
         this.boundingBoxGizmo = new CustomBoundingBoxGizmo(Color3.Gray(), this.layer, this);
         this.boundingBoxGizmo.attachedNode = this.root;
+        this.boundingBoxGizmo.onDragStartObservable.add(() => setDragging(true));
+        this.boundingBoxGizmo.onScaleBoxDragEndObservable.add(() => setDragging(false))
 
-        this.changeMode(GizmoMode.Scale);
+        this.changeMode(GizmoMode.Translate);
     }
 
     public changeMode(mode: GizmoMode) {

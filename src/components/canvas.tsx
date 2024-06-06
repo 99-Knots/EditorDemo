@@ -11,7 +11,7 @@ import { Texture } from '@babylonjs/core/Materials/Textures/texture';
 import { Tools } from '@babylonjs/core/Misc/tools'
 import { PointerEventTypes } from "@babylonjs/core/Events/pointerEvents";
 import { Ray } from "@babylonjs/core/Culling/ray";
-import { MovingButton } from "../ui/multiSwitch";
+import { MovingButton, RadialButton } from "../ui/multiSwitch";
 
 import { GizmoManager } from "./GizmoManager";
 
@@ -50,6 +50,8 @@ const CanvasRenderer: React.ForwardRefRenderFunction<CanvasHandle, CanvasProps> 
     
     const [rootPos, setRootPos] = React.useState(Vector3.Zero());
     const [hiddenSelection, setHiddenSelection] = React.useState(true);
+    const [cameraChange, setCameraChange] = React.useState(false);
+    const [dragging, setDragging] = React.useState(false);
 
     let isMoving = false;
     let wasMoving = false;
@@ -59,8 +61,9 @@ const CanvasRenderer: React.ForwardRefRenderFunction<CanvasHandle, CanvasProps> 
             setRootPos(gizmo.current.getRootScreenPosition())
     }, [hiddenSelection])
 
-    React.useEffect(() => {setHiddenSelection(isMoving || !gizmo.current?.isActive())}, [gizmo.current?.isActive()])
-
+    React.useEffect(() => {
+        setHiddenSelection(dragging || cameraChange || !gizmo.current?.isActive())
+    }, [dragging, cameraChange, gizmo.current?.isActive()])
 
     const setupCamera = async () => {
 		const arcRotCamera = new ArcRotateCamera(
@@ -133,7 +136,7 @@ const CanvasRenderer: React.ForwardRefRenderFunction<CanvasHandle, CanvasProps> 
     }
 
     const setupGizmo = async () => {
-        gizmo.current =  new GizmoManager(scene.current, 3.5, 1);
+        gizmo.current =  new GizmoManager(setDragging, scene.current, 3.5, 1);
         let pressedTimestamp = 0;
         const ray = new Ray(Vector3.Zero(), Vector3.Zero()) // necessary to ensure import of Ray
         scene.current.onPointerObservable.add((pointerinfo) => {
@@ -142,7 +145,6 @@ const CanvasRenderer: React.ForwardRefRenderFunction<CanvasHandle, CanvasProps> 
             }
 
             if (pointerinfo.type == PointerEventTypes.POINTERUP && pointerinfo.event.button == 0) {
-
                 let elapsedSincePressed = Date.now() - pressedTimestamp;
                 if (elapsedSincePressed < 200) {
                     let node = pointerinfo.pickInfo.pickedMesh;
@@ -161,14 +163,14 @@ const CanvasRenderer: React.ForwardRefRenderFunction<CanvasHandle, CanvasProps> 
             scene.current.render();
             if (isMoving) {
                 if (!wasMoving) {
-                    setHiddenSelection(true);
+                    setCameraChange(true);
                 }
                 wasMoving = true;
                 isMoving = false;
             }
             else {
                 if (wasMoving) {
-                    setHiddenSelection(!gizmo.current.isActive());
+                    setCameraChange(false)
                 }
                 wasMoving = false;
             }
@@ -195,7 +197,9 @@ const CanvasRenderer: React.ForwardRefRenderFunction<CanvasHandle, CanvasProps> 
     return (
         <div className="main"> 
             <canvas className='babylon-canvas' ref={canvas} />
-            <MovingButton x={rootPos.x} y={rootPos.y} hidden={hiddenSelection}/>
+            <MovingButton x={rootPos.x} y={rootPos.y} hidden={hiddenSelection}>
+                <RadialButton></RadialButton>
+            </MovingButton>
         </div>
     )
 }

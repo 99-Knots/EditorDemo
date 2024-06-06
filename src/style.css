@@ -21,9 +21,16 @@
     color: whitesmoke;
 }
 
-.test {
-    background-color: blueviolet;
+.gizmo-gui-center {
     position: absolute;
-    transform: translate(-50%, -50%);
     border-radius: 50%;
+}
+
+.centered {
+    transform: translate(-50%, -50%);
+}
+
+.test {
+    position: absolute;
+    background-color: blueviolet;
 }
