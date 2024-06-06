@@ -1,5 +1,29 @@
+.main {
+    position: relative;
+    overflow: hidden;
+}
+
 .babylon-canvas {
     width: 100%;
     height: 100%;
     outline: none;
+    position: relative;
+}
+
+.gizmo-mode-switch {
+    position: absolute;
+    top: 1em;
+    right: 1em;
+}
+
+.selected {
+    background-color: blueviolet;
+    color: whitesmoke;
+}
+
+.test {
+    background-color: blueviolet;
+    position: absolute;
+    transform: translate(-50%, -50%);
+    border-radius: 50%;
 }

@@ -105,6 +105,18 @@ export class GizmoManager {
         }
     }
 
+    public isActive() {
+        return !!this.currentGizmo.attachedNode
+    }
+
+    public getRootScreenPosition() {
+        const scene = this.root.getScene();
+        const engine = scene.getEngine()
+        const camera = scene._activeCamera;
+        const vec = Vector3.Project(this.root.position, Matrix.Identity(), scene.getTransformMatrix(), camera.viewport.toGlobal(engine.getRenderWidth(), engine.getRenderHeight()))
+        return vec
+    }
+
     public setRootPosition() {
         if (this.nodes.length > 0) {
             let minmax = this.nodes[0][0].getHierarchyBoundingVectors(true);

@@ -11,8 +11,9 @@ import { Texture } from '@babylonjs/core/Materials/Textures/texture';
 import { Tools } from '@babylonjs/core/Misc/tools'
 import { PointerEventTypes } from "@babylonjs/core/Events/pointerEvents";
 import { Ray } from "@babylonjs/core/Culling/ray";
+import { MovingButton } from "../ui/multiSwitch";
 
-import { GizmoManager } from "./gizmoManager";
+import { GizmoManager } from "./GizmoManager";
 
 import floor_tex from '../../assets/floortiles.png';
 import floor_norm from '../../assets/floortiles_normal.png';
@@ -46,6 +47,19 @@ const CanvasRenderer: React.ForwardRefRenderFunction<CanvasHandle, CanvasProps> 
     const engine = React.useRef<Engine>(null);
     const scene = React.useRef<Scene>(null);
     const gizmo = React.useRef<GizmoManager>(null);
+    
+    const [rootPos, setRootPos] = React.useState(Vector3.Zero());
+    const [hiddenSelection, setHiddenSelection] = React.useState(true);
+
+    let isMoving = false;
+    let wasMoving = false;
+
+    React.useEffect(() => {
+        if(gizmo.current)
+            setRootPos(gizmo.current.getRootScreenPosition())
+    }, [hiddenSelection])
+
+    React.useEffect(() => {setHiddenSelection(isMoving || !gizmo.current?.isActive())}, [gizmo.current?.isActive()])
 
 
     const setupCamera = async () => {
@@ -62,6 +76,7 @@ const CanvasRenderer: React.ForwardRefRenderFunction<CanvasHandle, CanvasProps> 
 		arcRotCamera.wheelDeltaPercentage = 0.01;
 		arcRotCamera.speed = 1;
 		arcRotCamera.attachControl(canvas, true);
+        arcRotCamera.onViewMatrixChangedObservable.add(() => {isMoving = true})
 	}
 
 	const setupSky = async () => {
@@ -135,6 +150,7 @@ const CanvasRenderer: React.ForwardRefRenderFunction<CanvasHandle, CanvasProps> 
                     if (!node.metadata?.immovable) {
                         gizmo.current.addNode(node);
                     }
+                    setRootPos(gizmo.current.getRootScreenPosition());
                 };
             }
         });
@@ -143,6 +159,19 @@ const CanvasRenderer: React.ForwardRefRenderFunction<CanvasHandle, CanvasProps> 
     const runLoop = async () => {
         engine.current.runRenderLoop(() => {
             scene.current.render();
+            if (isMoving) {
+                if (!wasMoving) {
+                    setHiddenSelection(true);
+                }
+                wasMoving = true;
+                isMoving = false;
+            }
+            else {
+                if (wasMoving) {
+                    setHiddenSelection(!gizmo.current.isActive());
+                }
+                wasMoving = false;
+            }
         })
         window.addEventListener("resize", () => {
             engine.current.resize();
@@ -164,7 +193,10 @@ const CanvasRenderer: React.ForwardRefRenderFunction<CanvasHandle, CanvasProps> 
     React.useImperativeHandle(env, () => handle);
 
     return (
-        <canvas className='babylon-canvas' ref={canvas} ></canvas>
+        <div className="main"> 
+            <canvas className='babylon-canvas' ref={canvas} />
+            <MovingButton x={rootPos.x} y={rootPos.y} hidden={hiddenSelection}/>
+        </div>
     )
 }
 
