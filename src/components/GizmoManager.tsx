@@ -131,15 +131,15 @@ export class GizmoManager {
         let v = Vector3.Right();
         switch (axis) {
             case 'x': {
-                v = Vector3.Right();
+                Vector3.Right().rotateByQuaternionToRef(this.root.rotationQuaternion, v);
                 break;
             }
             case 'y': {
-                v = Vector3.Up();
+                Vector3.Up().rotateByQuaternionToRef(this.root.rotationQuaternion, v);
                 break;
             }
             case 'z': {
-                v = Vector3.Forward();
+                Vector3.Forward().rotateByQuaternionToRef(this.root.rotationQuaternion, v);
             }
         }
         // vector from root along x-axis on screen

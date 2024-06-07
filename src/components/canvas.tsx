@@ -212,7 +212,7 @@ const CanvasRenderer: React.ForwardRefRenderFunction<CanvasHandle, CanvasProps> 
         <div className="main"> 
             <canvas className='babylon-canvas' ref={canvas} />
             <MovingButton x={rootPos.x} y={rootPos.y} hidden={hiddenSelection}>
-                <RadialButton angle={sectionAngle*2} rotation={45} radius={r} onClick={() => {setGizmoMode(GizmoMode.Translate)}} icon="arrows-move">
+                <RadialButton angle={sectionAngle*2} radius={r} onClick={() => {setGizmoMode(GizmoMode.Translate)}} icon="arrows-move">
                 </RadialButton>
                 <RadialButton angle={sectionAngle*3} radius={r} onClick={() => {setGizmoMode(GizmoMode.Rotate)}} icon="arrow-repeat">
                 </RadialButton>
