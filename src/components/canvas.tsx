@@ -13,7 +13,7 @@ import { PointerEventTypes } from "@babylonjs/core/Events/pointerEvents";
 import { Ray } from "@babylonjs/core/Culling/ray";
 import { MovingButton, RadialButton } from "../ui/multiSwitch";
 
-import { GizmoManager, GizmoMode } from "./GizmoManager";
+import { GizmoManager, GizmoMode, GizmoSpace } from "./GizmoManager";
 
 import floor_tex from '../../assets/floortiles.png';
 import floor_norm from '../../assets/floortiles_normal.png';
@@ -49,6 +49,7 @@ const CanvasRenderer: React.ForwardRefRenderFunction<CanvasHandle, CanvasProps> 
     const gizmo = React.useRef<GizmoManager>(null);
     
     const [gizmoMode, setGizmoMode] = React.useState(GizmoMode.Translate);
+    const [gizmoSpace, setGizmoSpace] = React.useState(GizmoSpace.Local);
     const [rootPos, setRootPos] = React.useState(Vector3.Zero());
     const [hiddenSelection, setHiddenSelection] = React.useState(undefined);
     const [cameraChange, setCameraChange] = React.useState(false);
@@ -58,20 +59,25 @@ const CanvasRenderer: React.ForwardRefRenderFunction<CanvasHandle, CanvasProps> 
     let isMoving = false;
     let wasMoving = false;
 
+
     React.useEffect(() => {
+        setHiddenSelection(dragging || cameraChange || !gizmo.current?.isActive())
+    }, [dragging, cameraChange, gizmo.current?.isActive()]);
+
+    React.useEffect(() => {
+        gizmo.current?.changeMode(gizmoMode);
+    }, [gizmoMode]);
+
+    React.useEffect(() => {
+        gizmo.current?.changeSpace(gizmoSpace);
+    }, [gizmoSpace]);
+
+    React.useEffect(() => {     // has to be declared after gizmoSpace effect or gizmo won't be updated yet
         if(gizmo.current){
             setRootPos(gizmo.current.getRootScreenPosition());
             setAxesAngles(gizmo.current.getAxesScreenAngles());
         }
-    }, [hiddenSelection])
-
-    React.useEffect(() => {
-        setHiddenSelection(dragging || cameraChange || !gizmo.current?.isActive())
-    }, [dragging, cameraChange, gizmo.current?.isActive()])
-
-    React.useEffect(() => {
-        gizmo.current?.changeMode(gizmoMode)
-    }, [gizmoMode]);
+    }, [hiddenSelection, gizmoSpace])
 
     const setupCamera = async () => {
 		const arcRotCamera = new ArcRotateCamera(
@@ -221,8 +227,13 @@ const CanvasRenderer: React.ForwardRefRenderFunction<CanvasHandle, CanvasProps> 
                 <RadialButton angle={sectionAngle*6} radius={r} onClick={() => {}} isExpandable={true}>
                     1m
                 </RadialButton>
-                <RadialButton angle={sectionAngle*7} radius={r} onClick={()=>{}} icon="globe2">
-                </RadialButton>
+                {(gizmoSpace == GizmoSpace.World) ? 
+                    <RadialButton angle={sectionAngle*7} radius={r} onClick={()=>{setGizmoSpace(GizmoSpace.Local)}} icon="box">
+                    </RadialButton>
+                    :
+                    <RadialButton angle={sectionAngle*7} radius={r} onClick={()=>{setGizmoSpace(GizmoSpace.World)}} icon="globe2">
+                    </RadialButton>
+                }
                 {(gizmoMode == GizmoMode.Scale)?
                     <RadialButton angle={sectionAngle*8} radius={r} onClick={()=>{}} icon="align-center"></RadialButton>
                     :

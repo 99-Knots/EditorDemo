@@ -119,6 +119,24 @@ export class GizmoManager {
         }
     }
 
+    public changeSpace(space: GizmoSpace) {
+        switch (space) {
+            case (GizmoSpace.World): 
+                this.inWorldSpace = true;
+                this.positionGizmo.updateGizmoRotationToMatchAttachedMesh = false;
+                this.rotationGizmo.updateGizmoRotationToMatchAttachedMesh = false;
+                break;
+            case (GizmoSpace.Local): 
+                this.inWorldSpace = false;
+                this.positionGizmo.updateGizmoRotationToMatchAttachedMesh = true;
+                this.rotationGizmo.updateGizmoRotationToMatchAttachedMesh = true;
+                break;
+        }
+        this.setRootPosition();
+        this.setRootRotation();
+        this.boundingBoxGizmo.updateGizmo();
+    }
+
     public isActive() {
         return !!this.currentGizmo.attachedNode
     }
@@ -130,26 +148,19 @@ export class GizmoManager {
     public getSingleAxisScreenAngle(axis: 'x'|'y'|'z') {
         let v = Vector3.Right();
         switch (axis) {
-            case 'x': {
+            case 'x': 
                 Vector3.Right().rotateByQuaternionToRef(this.root.rotationQuaternion, v);
                 break;
-            }
-            case 'y': {
+            case 'y': 
                 Vector3.Up().rotateByQuaternionToRef(this.root.rotationQuaternion, v);
                 break;
-            }
-            case 'z': {
+            case 'z': 
                 Vector3.Forward().rotateByQuaternionToRef(this.root.rotationQuaternion, v);
-            }
+                break;
         }
         // vector from root along x-axis on screen
         let p = projectToScreen(v.add(this.root.position), this.root.getScene()).subtract(this.getRootScreenPosition());
-        //let down = Vector3.Down();
-        //console.log(down.x, down.y, down.z)
-        //let dot = p.x*down.x + p.y*down.y;  // = 0 + p.y * -1 = -py
-        //let cross = p.x*down.y - p.y*down.x; // = p.x * -1 - 0 = -px
-        //return -Math.atan2(cross, dot) * 180/Math.PI;   // = atan2(-px, -py)
-        return -Math.atan2(-p.x, -p.y) * 180/Math.PI;   // swap x and y and negate for angle along nefative y-axis
+        return -Math.atan2(-p.x, -p.y) * 180/Math.PI;   // swap x and y and negate for angle along negative y-axis
     };
 
     public getAxesScreenAngles() {
