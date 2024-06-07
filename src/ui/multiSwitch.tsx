@@ -21,7 +21,8 @@ export const RadialButton = (props: {
     isExpandable?: boolean;
     icon?: string,
     children?: React.ReactNode,
-    rotation?: number
+    rotation?: number,
+    color?: string,
 }) => {
 
     const [isExpanded, setIsExpanded] = React.useState(false);
@@ -46,6 +47,7 @@ export const RadialButton = (props: {
                 top: -y +'vmin', 
                 left: x + 'vmin', 
                 maxWidth: width,
+                color: props.color,
             }} 
             onClick={props.onClick}
             onMouseEnter={() => {setIsExpanded(true && props.isExpandable)}}

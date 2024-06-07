@@ -40,7 +40,7 @@ const toTranslationMatrix = (v: Vector3) => {
 const projectToScreen = (p: Vector3, scene: Scene) => {
     
     const engine = scene.getEngine()
-    const camera = scene._activeCamera;
+    const camera = scene.activeCamera;
     return Vector3.Project(p, Matrix.Identity(), scene.getTransformMatrix(), camera.viewport.toGlobal(engine.getRenderWidth(), engine.getRenderHeight()))
 }
 
@@ -125,6 +125,35 @@ export class GizmoManager {
 
     public getRootScreenPosition() {
         return projectToScreen(this.root.position, this.root.getScene());
+    }
+
+    public getSingleAxisScreenAngle(axis: 'x'|'y'|'z') {
+        let v = Vector3.Right();
+        switch (axis) {
+            case 'x': {
+                v = Vector3.Right();
+                break;
+            }
+            case 'y': {
+                v = Vector3.Up();
+                break;
+            }
+            case 'z': {
+                v = Vector3.Forward();
+            }
+        }
+        // vector from root along x-axis on screen
+        let p = projectToScreen(v.add(this.root.position), this.root.getScene()).subtract(this.getRootScreenPosition());
+        //let down = Vector3.Down();
+        //console.log(down.x, down.y, down.z)
+        //let dot = p.x*down.x + p.y*down.y;  // = 0 + p.y * -1 = -py
+        //let cross = p.x*down.y - p.y*down.x; // = p.x * -1 - 0 = -px
+        //return -Math.atan2(cross, dot) * 180/Math.PI;   // = atan2(-px, -py)
+        return -Math.atan2(-p.x, -p.y) * 180/Math.PI;   // swap x and y and negate for angle along nefative y-axis
+    };
+
+    public getAxesScreenAngles() {
+        return new Vector3(this.getSingleAxisScreenAngle('x'), this.getSingleAxisScreenAngle('y'), this.getSingleAxisScreenAngle('z'));
     }
 
     public setRootPosition() {

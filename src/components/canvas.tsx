@@ -53,13 +53,16 @@ const CanvasRenderer: React.ForwardRefRenderFunction<CanvasHandle, CanvasProps> 
     const [hiddenSelection, setHiddenSelection] = React.useState(undefined);
     const [cameraChange, setCameraChange] = React.useState(false);
     const [dragging, setDragging] = React.useState(false);
+    const [axesAngles, setAxesAngles] = React.useState(Vector3.ZeroReadOnly);
 
     let isMoving = false;
     let wasMoving = false;
 
     React.useEffect(() => {
-        if(gizmo.current)
-            setRootPos(gizmo.current.getRootScreenPosition())
+        if(gizmo.current){
+            setRootPos(gizmo.current.getRootScreenPosition());
+            setAxesAngles(gizmo.current.getAxesScreenAngles());
+        }
     }, [hiddenSelection])
 
     React.useEffect(() => {
@@ -204,6 +207,7 @@ const CanvasRenderer: React.ForwardRefRenderFunction<CanvasHandle, CanvasProps> 
     const r = 15;
     const sectionAngle = 90/6;
 
+    // todo: maybe also use z-index to represent axis overlap in correct order?
     return (
         <div className="main"> 
             <canvas className='babylon-canvas' ref={canvas} />
@@ -219,10 +223,24 @@ const CanvasRenderer: React.ForwardRefRenderFunction<CanvasHandle, CanvasProps> 
                 </RadialButton>
                 <RadialButton angle={sectionAngle*7} radius={r} onClick={()=>{}} icon="globe2">
                 </RadialButton>
-                <RadialButton angle={sectionAngle*9} radius={r} onClick={()=>{}} icon="copy">
+                {(gizmoMode == GizmoMode.Scale)?
+                    <RadialButton angle={sectionAngle*8} radius={r} onClick={()=>{}} icon="align-center"></RadialButton>
+                    :
+                    <></>
+                }
+                <RadialButton angle={sectionAngle*9.5} radius={r} onClick={()=>{}} icon="copy">
                 </RadialButton>
-                <RadialButton angle={sectionAngle*10} radius={r} onClick={()=>{}} icon="trash3">
+                <RadialButton angle={sectionAngle*10.5} radius={r} onClick={()=>{}} icon="trash3">
                 </RadialButton>
+                {(gizmoMode == GizmoMode.Translate )? 
+                    <>
+                        <RadialButton angle={axesAngles.z} color={'cyan'} radius={10} rotation={axesAngles.z - 90} onClick={()=>{}} icon="indent"></RadialButton>
+                        <RadialButton angle={axesAngles.y} color={'lime'} radius={10} rotation={axesAngles.y - 90} onClick={()=>{}} icon="indent"></RadialButton>
+                        <RadialButton angle={axesAngles.x} color={'pink'} radius={10} rotation={axesAngles.x - 90} onClick={()=>{}} icon="indent"></RadialButton>
+                    </>
+                    : 
+                    <></>
+                 }
             </MovingButton>
         </div>
     )
