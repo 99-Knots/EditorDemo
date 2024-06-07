@@ -1,6 +1,7 @@
 .main {
     position: relative;
     overflow: hidden;
+    font-size: 2vmin;
 }
 
 .babylon-canvas {
@@ -11,11 +12,13 @@
 }
 
 .gizmo-mode-switch {
+    display: flex;
+    align-items: center;
     position: absolute;
-    padding: 0.3em;
-    background-color: darkgray;
-    height: 1em;
-    width: 1em;
+    background-color: gray;
+    height: 1.6em;
+    outline: whitesmoke solid 0.5px;
+    transition: max-width 1s;
 }
 
 .bi { 
@@ -31,18 +34,28 @@
 .gizmo-gui-center {
     user-select: none;
     position: absolute;
+    color: whitesmoke;
+}
+
+.icon {
+    padding: 0.3em;
+}
+
+.options {
+    height: inherit;
+    overflow: hidden;
+    display: flex;
 }
 
 .centered {
-    transform: translate(-50%, -50%);
+    transform: translate(-0.5em, -0.5em);
 }
 
 .round {
-    border-radius: 50%;
+    border-radius: 1em;
 }
 
 .test {
-    position: absolute;
-    background-color: blueviolet;
+    border-left: whitesmoke solid 1px;
     padding: 0.3em;
 }

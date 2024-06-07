@@ -182,6 +182,8 @@ const CanvasRenderer: React.ForwardRefRenderFunction<CanvasHandle, CanvasProps> 
         })
         window.addEventListener("resize", () => {
             engine.current.resize();
+            if (gizmo.current)
+                setRootPos(gizmo.current.getRootScreenPosition());
         })
     }
 
@@ -199,20 +201,27 @@ const CanvasRenderer: React.ForwardRefRenderFunction<CanvasHandle, CanvasProps> 
     }
     React.useImperativeHandle(env, () => handle);
 
-    const r = 70;
+    const r = 15;
+    const sectionAngle = 90/6;
 
     return (
         <div className="main"> 
             <canvas className='babylon-canvas' ref={canvas} />
             <MovingButton x={rootPos.x} y={rootPos.y} hidden={hiddenSelection}>
-                <RadialButton angle={15} radius={r} onClick={() => {setGizmoMode(GizmoMode.Translate)}}>
-                    <i className="bi bi-arrows-move"/>
+                <RadialButton angle={sectionAngle*2} radius={r} onClick={() => {setGizmoMode(GizmoMode.Translate)}} icon="arrows-move">
                 </RadialButton>
-                <RadialButton angle={45} radius={r} onClick={() => {setGizmoMode(GizmoMode.Rotate)}}>
-                    <i className="bi bi-arrow-repeat"/>
+                <RadialButton angle={sectionAngle*3} radius={r} onClick={() => {setGizmoMode(GizmoMode.Rotate)}} icon="arrow-repeat">
                 </RadialButton>
-                <RadialButton angle={75} radius={r} onClick={() => {setGizmoMode(GizmoMode.Scale)}}>
-                    <i className="bi bi-bounding-box-circles"/>
+                <RadialButton angle={sectionAngle*4} radius={r} onClick={() => {setGizmoMode(GizmoMode.Scale)}} icon="bounding-box-circles">
+                </RadialButton>
+                <RadialButton angle={sectionAngle*6} radius={r} onClick={() => {}} isExpandable={true}>
+                    1m
+                </RadialButton>
+                <RadialButton angle={sectionAngle*7} radius={r} onClick={()=>{}} icon="globe2">
+                </RadialButton>
+                <RadialButton angle={sectionAngle*9} radius={r} onClick={()=>{}} icon="copy">
+                </RadialButton>
+                <RadialButton angle={sectionAngle*10} radius={r} onClick={()=>{}} icon="trash3">
                 </RadialButton>
             </MovingButton>
         </div>

@@ -18,14 +18,45 @@ export const RadialButton = (props: {
     radius: number,
     angle: number,
     onClick: (val: any) => void,
+    isExpandable?: boolean;
+    icon?: string,
     children?: React.ReactNode
 }) => {
+
+    const [isExpanded, setIsExpanded] = React.useState(false);
+    const [width, setWidth] = React.useState('1.6em');
+
+    React.useEffect(() => {
+        if (isExpanded)
+            setWidth('100em');
+        else
+            setWidth('1.6em');
+    }, [isExpanded])
+
     let x = Math.sin(Math.PI/180 * props.angle)*props.radius;
     let y = Math.cos(Math.PI/180 * props.angle)*props.radius;
     
     return (
-        <div className="gizmo-mode-switch centered round" style={{top: -y, left: x}} onClick={props.onClick}>
-            {props.children}
+        <div 
+            className="gizmo-mode-switch centered round" 
+            style={{top: -y +'vmin', left: x + 'vmin', maxWidth: width}} 
+            onClick={props.onClick}
+            onMouseEnter={() => {setIsExpanded(true && props.isExpandable)}}
+            onMouseLeave={() => {setIsExpanded(false)}}
+        >
+            <span className={"icon " + (props.icon ? " bi bi-" + props.icon : "")}>
+                {props.children}
+            </span>
+            <OptionSelection/>
+        </div>
+    )
+}
+
+const OptionSelection = () => {
+    return (
+        <div className="options">
+            <div className="test">Teeeeeeeeest</div>
+            <div className="test">Testg</div>
         </div>
     )
 }
