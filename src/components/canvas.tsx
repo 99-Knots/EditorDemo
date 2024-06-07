@@ -14,6 +14,7 @@ import { Ray } from "@babylonjs/core/Culling/ray";
 import { MovingButton, RadialButton } from "../ui/multiSwitch";
 
 import { GizmoManager, GizmoMode, GizmoSpace } from "./GizmoManager";
+import { Commands, CreateObjectCommand, DeleteObjectCommand } from "../utilities/commands";
 
 import floor_tex from '../../assets/floortiles.png';
 import floor_norm from '../../assets/floortiles_normal.png';
@@ -172,6 +173,22 @@ const CanvasRenderer: React.ForwardRefRenderFunction<CanvasHandle, CanvasProps> 
         });
     }
 
+    const duplicateNode = () => {
+        gizmo.current.getNodes().forEach( n => {
+            const newNode = n[0].clone(n[0].name + "(copy)", null, false);
+            Commands().execute(new CreateObjectCommand(newNode));
+            newNode.freezeWorldMatrix(n[0].getWorldMatrix());
+        });
+    }
+
+    const deleteNode = () => {
+        gizmo.current.getNodes().forEach( n => {
+            Commands().execute(new DeleteObjectCommand(n[0]));
+        });
+        gizmo.current.removeAllNodes();
+        setHiddenSelection(true);
+    }
+
     const runLoop = async () => {
         engine.current.runRenderLoop(() => {
             scene.current.render();
@@ -239,9 +256,9 @@ const CanvasRenderer: React.ForwardRefRenderFunction<CanvasHandle, CanvasProps> 
                     :
                     <></>
                 }
-                <RadialButton angle={sectionAngle*9.5} radius={r} onClick={()=>{}} icon="copy">
+                <RadialButton angle={sectionAngle*9.5} radius={r} onClick={()=>{duplicateNode()}} icon="copy">
                 </RadialButton>
-                <RadialButton angle={sectionAngle*10.5} radius={r} onClick={()=>{}} icon="trash3">
+                <RadialButton angle={sectionAngle*10.5} radius={r} onClick={()=>{deleteNode()}} icon="trash3">
                 </RadialButton>
                 {(gizmoMode == GizmoMode.Translate )? 
                     <>
