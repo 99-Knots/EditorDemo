@@ -88,7 +88,7 @@ export class GizmoManager {
         this.rotationGizmo.onDragEndObservable.add(() => {setDragging(false)})
         this.initRotationGizmo();
 
-        this.boundingBoxGizmo = new CustomBoundingBoxGizmo(Color3.Gray(), this.layer, this);
+        this.boundingBoxGizmo = new CustomBoundingBoxGizmo(setDragging, Color3.Gray(), this.layer, this);
         this.boundingBoxGizmo.attachedNode = this.root;
         this.boundingBoxGizmo.onDragStartObservable.add(() => setDragging(true));
         this.boundingBoxGizmo.onScaleBoxDragEndObservable.add(() => setDragging(false))
@@ -123,18 +123,21 @@ export class GizmoManager {
         switch (space) {
             case (GizmoSpace.World): 
                 this.inWorldSpace = true;
-                this.positionGizmo.updateGizmoRotationToMatchAttachedMesh = false;
-                this.rotationGizmo.updateGizmoRotationToMatchAttachedMesh = false;
                 break;
             case (GizmoSpace.Local): 
                 this.inWorldSpace = false;
-                this.positionGizmo.updateGizmoRotationToMatchAttachedMesh = true;
-                this.rotationGizmo.updateGizmoRotationToMatchAttachedMesh = true;
                 break;
         }
         this.setRootPosition();
         this.setRootRotation();
+        this.positionGizmo.updateGizmoRotationToMatchAttachedMesh = !this.inWorldSpace;
+        this.rotationGizmo.updateGizmoRotationToMatchAttachedMesh = !this.inWorldSpace;
+        this.boundingBoxGizmo.updateGizmoRotationToMatchAttachedMesh = !this.inWorldSpace;
         this.boundingBoxGizmo.updateGizmo();
+    }
+
+    public setToCentralScaling(val: boolean) {
+        this.boundingBoxGizmo.scaleFromCenter = val;
     }
 
     public isActive() {
@@ -315,9 +318,9 @@ class CustomBoundingBoxGizmo extends BoundingBoxGizmo {
      * @param utilLayer Utility Layer that the gizmo will be added to
      * @param gizmoManager Gizmo Manager that will handle the gizmo
      */
-    constructor(color: Color3, utilLayer: UtilityLayerRenderer, gizmoManager: GizmoManager) {
+    constructor(setDragging: (b: boolean)=>void, color: Color3, utilLayer: UtilityLayerRenderer, gizmoManager: GizmoManager) {
         super(color, utilLayer)
-        this._hoverColoredMaterial.emissiveColor = new Color3(153 / 255, 0, 153 / 255);
+        this._hoverColoredMaterial.emissiveColor = new Color3(1, 0.7, 0);
         this.gizmoManager = gizmoManager;
         this._scaleFromCenter = true;
         this._scaleDragSpeed *= 2;
@@ -325,21 +328,20 @@ class CustomBoundingBoxGizmo extends BoundingBoxGizmo {
 
         // 'disable' rotation spheres by removing them from scene, since this is a scale-only gizmo!
         this._rootMesh.removeChild(this._rotateSpheresParent);
-        this._rotateSpheresParent.getChildMeshes().forEach(s => {
+        this._rotateSpheresParent.getChildMeshes().forEach( s => {
             this.gizmoLayer.utilityLayerScene.removeMesh(s)
         });
 
         this.currentMinMaxFree = { min: Vector3.Zero(), max: Vector3.Zero() };
         this.currentMinMaxAA = { min: Vector3.Zero(), max: Vector3.Zero() };
 
-        this.initDragBehaviour();
-
+        this.initDragBehaviour(setDragging);
     }
 
     /**
      * Set custom drag behaviours for the selectable boxes of the gizmo
      */
-    protected initDragBehaviour() {
+    protected initDragBehaviour(setDragging: (b: boolean)=>void) {
         const axisToProp = (a: Vector3) => {
             let max = Math.max(Math.abs(a.x), Math.abs(a.y), Math.abs(a.z));
             return max ? new Vector3(Math.abs(a.x / max), Math.abs(a.y / max), Math.abs(a.z / max)) : a;
@@ -365,7 +367,8 @@ class CustomBoundingBoxGizmo extends BoundingBoxGizmo {
             dragBehavior.moveAttached = false;
 
 
-            dragBehavior.onDragStartObservable.add(eventData => {
+            dragBehavior.onDragStartObservable.add( eventData => {
+                setDragging(true);
                 this._lineBoundingBox.computeWorldMatrix(true);
 
                 center = this._lineBoundingBox.getAbsolutePivotPoint().clone();
@@ -375,9 +378,16 @@ class CustomBoundingBoxGizmo extends BoundingBoxGizmo {
                 nodes = this.gizmoManager.getNodes();
             });
 
-            dragBehavior.onDragObservable.add(eventData => {
+            dragBehavior.onDragObservable.add( eventData => {
 
-                dragFactor += eventData.dragDistance;
+                if (!this.attachedNode) {
+                    dragBehavior.releaseDrag();     // fix for stuck drag mode when another key is pressed during drag
+                    return
+                }
+                if (this._scaleFromCenter) 
+                    dragFactor += eventData.dragDistance;
+                else 
+                    dragFactor += eventData.dragDistance*0.5
                 const center_boxDirection = initialDist.normalizeToNew();   
 
                 const scaleAmount = axis.scale(dragFactor);                                     // how much the object's scale changes along x,y,z directions
@@ -391,19 +401,22 @@ class CustomBoundingBoxGizmo extends BoundingBoxGizmo {
 
                 nodes.forEach( n => {
                     const Rmat = this.attachedNode.getWorldMatrix().getRotationMatrix()
-                    const dist = n[1].getTranslation().add(center.subtract(n[1].getTranslation()));
+                    const offset = n[1].getTranslation().add(center.subtract(n[1].getTranslation()));
 
-                    let mat = n[1].multiply(toTranslationMatrix(dist.negate()));    // move to Origin
+                    let mat = n[1].multiply(toTranslationMatrix(offset.negate()));    // move to Origin
+                    if (!this._scaleFromCenter) 
+                        mat = mat.multiply(toTranslationMatrix(d));
                     mat = mat.multiply(Rmat.clone().invert());                      // revert the bounding box's rotation
                     mat = mat.multiply(Smat);                                       // scale
                     mat = mat.multiply(Rmat);                                       // undo previous rotation
-                    mat = mat.multiply(toTranslationMatrix(dist));                  // undo previous translation
+                    if (!this._scaleFromCenter) 
+                        mat = mat.multiply(toTranslationMatrix(d.negate()));
+                    mat = mat.multiply(toTranslationMatrix(offset))                   // undo previous translation
 
                     n[0].freezeWorldMatrix(mat);
                 });
                 boxes[i].material = this.hoverMaterial;
                 this.updateGizmo();
-
             });
 
             dragBehavior.onDragEndObservable.add(eventData => {
@@ -414,7 +427,7 @@ class CustomBoundingBoxGizmo extends BoundingBoxGizmo {
                 });
                 Commands().execute(new GroupCommand(cList));
                 boxes[i].material = this.coloredMaterial;
-                this.updateGizmo();
+                setDragging(false)
             });
 
             boxes[i].addBehavior(dragBehavior);
@@ -429,8 +442,6 @@ class CustomBoundingBoxGizmo extends BoundingBoxGizmo {
         const nodes = this.gizmoManager.getNodes();
         if (nodes.length > 0) {
             let NodeMinMax: MinMax;
-
-            nodes[0][0].computeWorldMatrix(true);
 
             let Rmat: Matrix;
             Rmat = nodes[0][0].getWorldMatrix().getRotationMatrix();
@@ -455,7 +466,7 @@ class CustomBoundingBoxGizmo extends BoundingBoxGizmo {
      * @param position optional, allows for repositioning the bounding box at another place
      * @param space indicates in which space the position is given. BONE is treated as LOCAL (LOCAL as default)
      */
-    updateGizmo(position?: Vector3, space: GizmoSpace = GizmoSpace.Local) {
+    updateGizmo(position?: Vector3) {
         if (this.attachedNode) {    // only update anything if the gizmo is attached to something
             this.setMinMax();
 
@@ -467,16 +478,15 @@ class CustomBoundingBoxGizmo extends BoundingBoxGizmo {
             }
             this._lineBoundingBox.scaling.copyFrom(this._boundingDimensions);
 
-            if (position) {
-                if (space == GizmoSpace.World)
-                    this._lineBoundingBox.setAbsolutePosition(position);
-                else
+            if(position) {
+                if (this.updateGizmoRotationToMatchAttachedMesh)
                     this._lineBoundingBox.position = position;
+                else 
+                    this._lineBoundingBox.setAbsolutePosition(position);
             }
             else {
                 this._lineBoundingBox.position = Vector3.Zero();
             }
-
 
             this._scaleBoxesParent.position.copyFrom(this._lineBoundingBox.position);
             this._lineBoundingBox.computeWorldMatrix();

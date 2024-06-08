@@ -51,6 +51,7 @@ const CanvasRenderer: React.ForwardRefRenderFunction<CanvasHandle, CanvasProps> 
     
     const [gizmoMode, setGizmoMode] = React.useState(GizmoMode.Translate);
     const [gizmoSpace, setGizmoSpace] = React.useState(GizmoSpace.Local);
+    const [gizmoScaling, setGizmoScaling] = React.useState(true);
     const [rootPos, setRootPos] = React.useState(Vector3.Zero());
     const [hiddenSelection, setHiddenSelection] = React.useState(undefined);
     const [cameraChange, setCameraChange] = React.useState(false);
@@ -72,6 +73,10 @@ const CanvasRenderer: React.ForwardRefRenderFunction<CanvasHandle, CanvasProps> 
     React.useEffect(() => {
         gizmo.current?.changeSpace(gizmoSpace);
     }, [gizmoSpace]);
+
+    React.useEffect(() => {
+        gizmo.current?.setToCentralScaling(gizmoScaling);
+    }, [gizmoScaling])
 
     React.useEffect(() => {     // has to be declared after gizmoSpace effect or gizmo won't be updated yet
         if(gizmo.current){
@@ -252,7 +257,10 @@ const CanvasRenderer: React.ForwardRefRenderFunction<CanvasHandle, CanvasProps> 
                     </RadialButton>
                 }
                 {(gizmoMode == GizmoMode.Scale)?
-                    <RadialButton angle={sectionAngle*8} radius={r} onClick={()=>{}} icon="align-center"></RadialButton>
+                    (gizmoScaling == true) ? 
+                    <RadialButton angle={sectionAngle*8} radius={r} onClick={()=>{setGizmoScaling(false)}} icon="align-start"></RadialButton>
+                    :
+                    <RadialButton angle={sectionAngle*8} radius={r} onClick={()=>{setGizmoScaling(true)}} icon="align-center"></RadialButton>
                     :
                     <></>
                 }
