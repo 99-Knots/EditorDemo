@@ -15,10 +15,14 @@
     display: flex;
     align-items: center;
     position: absolute;
-    background-color: gray;
     height: 1.6em;
-    outline: whitesmoke solid 0.5px;
     transition: max-width 1s;
+}
+
+.gui {
+    color: whitesmoke;
+    background-color: gray;
+    outline: whitesmoke solid 0.5px;
 }
 
 .bi { 
@@ -29,6 +33,22 @@
 .selected {
     background-color: blueviolet;
     color: whitesmoke;
+}
+
+.side-menu {
+    left: 0;
+    top: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: absolute;
+    margin: 1em;
+    user-select: none;
+    gap: 0.3em;
+}
+
+.side-menu .option {
+    padding: 0.3em;
 }
 
 .gizmo-gui-center {

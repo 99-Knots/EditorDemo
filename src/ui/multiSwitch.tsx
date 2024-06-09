@@ -42,7 +42,7 @@ export const RadialButton = (props: {
     
     return (
         <div 
-            className="gizmo-mode-switch centered round" 
+            className="gizmo-mode-switch gui centered round" 
             style={{
                 top: -y +'vmin', 
                 left: x + 'vmin', 

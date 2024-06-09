@@ -11,6 +11,8 @@ import { Texture } from '@babylonjs/core/Materials/Textures/texture';
 import { Tools } from '@babylonjs/core/Misc/tools'
 import { PointerEventTypes } from "@babylonjs/core/Events/pointerEvents";
 import { Ray } from "@babylonjs/core/Culling/ray";
+
+import { SideMenu, MenuOption } from '../ui/sideMenu'
 import { MovingButton, RadialButton } from "../ui/multiSwitch";
 
 import { GizmoManager, GizmoMode, GizmoSpace } from "./GizmoManager";
@@ -239,6 +241,9 @@ const CanvasRenderer: React.ForwardRefRenderFunction<CanvasHandle, CanvasProps> 
     return (
         <div className="main"> 
             <canvas className='babylon-canvas' ref={canvas} />
+            <SideMenu onClick={()=>{Commands().undo(); setHiddenSelection(true), gizmo.current.removeAllNodes()}}>
+                <MenuOption onClick={()=>{Commands().undo(); setHiddenSelection(true), gizmo.current.removeAllNodes()}} icon="arrow-90deg-left"></MenuOption>
+            </SideMenu>
             <MovingButton x={rootPos.x} y={rootPos.y} hidden={hiddenSelection}>
                 <RadialButton angle={sectionAngle*2} radius={r} onClick={() => {setGizmoMode(GizmoMode.Translate)}} icon="arrows-move">
                 </RadialButton>
