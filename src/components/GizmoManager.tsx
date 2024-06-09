@@ -26,6 +26,11 @@ export type Transformation = {
     scale: Vector3,
 }
 
+export type TransformOrient = {
+    matrix: Matrix,
+    orientation: Quaternion,
+}
+
 type MinMax = {
     min: Vector3,
     max: Vector3,
@@ -50,7 +55,7 @@ export class GizmoManager {
     private root: TransformNode;                            // actual attached node of the gizmo; serves to transfer changes to the meshes
     private initialTransform: Transformation;               // transformation of the root before an axis gets dragged; to calculate the difference between start and end of drag
     private inWorldSpace: boolean;                          // indicates if the gizmo is currently using world orientation
-    private nodes: [TransformNode, Matrix][];               // list of meshes and their transformatin currently attached to the gizmo
+    private nodes: [TransformNode, TransformOrient][];               // list of meshes and their transformatin currently attached to the gizmo
     private positionGizmo: PositionGizmo;                   // gizmo for translation
     private rotationGizmo: RotationGizmo;                   // gizmo for rotation
     private boundingBoxGizmo: CustomBoundingBoxGizmo;       // gizmo for scaling
@@ -187,7 +192,7 @@ export class GizmoManager {
 
     public setRootRotation() {
         if (this.nodes.length == 1 && !this.inWorldSpace) {
-            this.root.rotationQuaternion = Quaternion.FromRotationMatrix(this.nodes[0][1].getRotationMatrix())
+            this.root.rotationQuaternion = this.nodes[0][0].rotationQuaternion.clone();
         }
         else {
             this.root.rotationQuaternion.set(0, 0, 0, 1);
@@ -197,8 +202,10 @@ export class GizmoManager {
     public addNode(node: TransformNode) {
         if (!this.nodes.find(n => n[0].uniqueId == node.uniqueId)) {    // only add node if it wasn't already attached
             node.computeWorldMatrix(true);
+            if (!node.rotationQuaternion)   // use nodes rotation Quaternion to store orientation
+                node.rotationQuaternion = Quaternion.FromRotationMatrix(node.getWorldMatrix().getRotationMatrix());
             // add the node to the list of attached nodes, together with its world matrix
-            this.nodes.push([node, node.getWorldMatrix().clone()]);
+            this.nodes.push([node, {matrix: node.getWorldMatrix().clone(), orientation: node.rotationQuaternion}]);
             this.hlLayer.addMesh(node as Mesh, new Color3(1, 0.9, 0));
 
             this.setRootPosition();
@@ -243,7 +250,7 @@ export class GizmoManager {
             const dist = this.root.position.subtract(this.initialTransform.position)
             const Tmat = toTranslationMatrix(dist);
             this.nodes.forEach(n => {
-                n[0].freezeWorldMatrix(n[1].multiply(Tmat))
+                n[0].freezeWorldMatrix(n[1].matrix.multiply(Tmat))
             });
         });
 
@@ -251,7 +258,7 @@ export class GizmoManager {
             const cList = [];
             this.nodes.forEach( n => { 
                 cList.push(new TransformCommand(n[0], n[1])); 
-                n[1] = n[0].getWorldMatrix().clone();
+                n[1].matrix = n[0].getWorldMatrix().clone();
             });
             Commands().execute(new GroupCommand(cList));
         });
@@ -267,13 +274,14 @@ export class GizmoManager {
             const quat = this.root.rotationQuaternion.multiply(qinv);   // quaternion for the rotation of the root since drag start
 
             this.nodes.forEach(n => {   // reset to state before rotation and then do entire rotation anew
-                const dist = n[1].getTranslation().add(this.root.position.subtract(n[1].getTranslation()));
+                const dist = n[1].matrix.getTranslation().add(this.root.position.subtract(n[1].matrix.getTranslation()));
                 let Rmat = Matrix.Identity();
                 quat.toRotationMatrix(Rmat);
 
-                let mat = n[1].multiply(toTranslationMatrix(dist.negate()));    // move to Origin
+                let mat = n[1].matrix.multiply(toTranslationMatrix(dist.negate()));    // move to Origin
                 mat = mat.multiply(Rmat);                                       // rotate
                 mat = mat.multiply(toTranslationMatrix(dist))                   // undo previous translation
+                n[0].rotationQuaternion = quat.multiply(n[1].orientation);     // store the orientation of the node
                 n[0].freezeWorldMatrix(mat);
             });
         });
@@ -282,7 +290,8 @@ export class GizmoManager {
             const cList = [];
             this.nodes.forEach( n => { 
                 cList.push(new TransformCommand(n[0], n[1]));
-                n[1] = n[0].getWorldMatrix().clone();
+                n[1].matrix = n[0].getWorldMatrix().clone();
+                n[1].orientation = n[0].rotationQuaternion;
             });
             Commands().execute(new GroupCommand(cList));
             this.setRootRotation();     // reset the root to a neutral orientation
@@ -401,9 +410,9 @@ class CustomBoundingBoxGizmo extends BoundingBoxGizmo {
 
                 nodes.forEach( n => {
                     const Rmat = this.attachedNode.getWorldMatrix().getRotationMatrix()
-                    const offset = n[1].getTranslation().add(center.subtract(n[1].getTranslation()));
+                    const offset = n[1].matrix.getTranslation().add(center.subtract(n[1].matrix.getTranslation()));
 
-                    let mat = n[1].multiply(toTranslationMatrix(offset.negate()));    // move to Origin
+                    let mat = n[1].matrix.multiply(toTranslationMatrix(offset.negate()));    // move to Origin
                     if (!this._scaleFromCenter) 
                         mat = mat.multiply(toTranslationMatrix(d));
                     mat = mat.multiply(Rmat.clone().invert());                      // revert the bounding box's rotation
@@ -423,7 +432,7 @@ class CustomBoundingBoxGizmo extends BoundingBoxGizmo {
                 const cList = [];
                 nodes.forEach( n => { 
                     cList.push(new TransformCommand(n[0], n[1])); 
-                    n[1] = n[0].getWorldMatrix().clone();
+                    n[1].matrix = n[0].getWorldMatrix().clone();
                 });
                 Commands().execute(new GroupCommand(cList));
                 boxes[i].material = this.coloredMaterial;
@@ -443,8 +452,10 @@ class CustomBoundingBoxGizmo extends BoundingBoxGizmo {
         if (nodes.length > 0) {
             let NodeMinMax: MinMax;
 
-            let Rmat: Matrix;
-            Rmat = nodes[0][0].getWorldMatrix().getRotationMatrix();
+            let Rmat: Matrix = Matrix.Identity();
+            //Rmat = nodes[0][0].getWorldMatrix().getRotationMatrix();
+            //Rmat = nodes[0][0].rotationQuaternion.toRotationMatrix(Rmat)
+            Matrix.FromQuaternionToRef(nodes[0][0].rotationQuaternion, Rmat);
             nodes[0][0].freezeWorldMatrix(nodes[0][0].getWorldMatrix().multiply(Rmat.clone().invert()))     // reset the nodes rotation
             this.currentMinMaxFree = nodes[0][0].getHierarchyBoundingVectors(true);
 

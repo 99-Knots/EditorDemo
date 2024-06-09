@@ -1,7 +1,9 @@
-import { Vector3, Matrix } from "@babylonjs/core/Maths";
+import { Vector3, Matrix, Quaternion } from "@babylonjs/core/Maths";
 import { TransformNode } from "@babylonjs/core/Meshes/transformNode";
 import { AbstractMesh } from "@babylonjs/core/Meshes/abstractMesh"
 import { Scene } from "@babylonjs/core/scene";
+
+import { TransformOrient } from "../components/GizmoManager";
 
 interface Command {
     name: string;
@@ -35,31 +37,33 @@ class CommandStack {
 export class TransformCommand implements Command{
     name: string;
     node: TransformNode;
-    matrix: Matrix;   // probably useless because it does not work as reference
     oldMat: Matrix;
     newMat: Matrix;
+    oldOrient: Quaternion;
+    newOrient: Quaternion;
 
     /**
      * Creates a Command for the transformation of a node
      * @param nodeObj the node in the new transformation
-     * @param oldWorldMatrix world matrix of the node before the transformation
+     * @param oldTransform world matrix of the node before the transformation
      */
-    constructor(nodeObj: TransformNode, oldWorldMatrix: Matrix) {
+    constructor(nodeObj: TransformNode, oldTransform: TransformOrient) {
         this.name = 'Move Object';
         this.node = nodeObj;
         this.newMat = this.node.getWorldMatrix().clone();
-        this.matrix = oldWorldMatrix;
-        this.oldMat = this.matrix.clone();
+        this.oldMat = oldTransform.matrix.clone();
+        this.newOrient = this.node.rotationQuaternion.clone();
+        this.oldOrient = oldTransform.orientation.clone();
     }
 
     execute(): void {
+        this.node.rotationQuaternion = this.newOrient.clone();  // must be done before freezeWorldMatrix, otherwise world matrix get's overwritten 
         this.node.freezeWorldMatrix(this.newMat.clone());
-        this.matrix = this.newMat.clone();
     }
 
     undo(): void {
+        this.node.rotationQuaternion = this.oldOrient.clone();
         this.node.freezeWorldMatrix(this.oldMat.clone());
-        this.matrix = this.oldMat.clone();
     }
 }
 
