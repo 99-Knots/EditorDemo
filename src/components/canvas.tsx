@@ -10,6 +10,7 @@ import { StandardMaterial } from '@babylonjs/core/Materials/standardMaterial';
 import { Texture } from '@babylonjs/core/Materials/Textures/texture';
 import { Tools } from '@babylonjs/core/Misc/tools'
 import { PointerEventTypes } from "@babylonjs/core/Events/pointerEvents";
+import { KeyboardEventTypes } from "@babylonjs/core/Events/keyboardEvents";
 import { Ray } from "@babylonjs/core/Culling/ray";
 
 import { SideMenu, MenuOption } from '../ui/sideMenu'
@@ -32,16 +33,6 @@ export type CanvasHandle = {
     getScene(): Scene
     
     loadScene(): Promise<void>
-
-    //deleteNode(node: TransformNode): void
-
-    //duplicateNode(node: TransformNode): void
-
-    //getGizmo(): GizmoManager
-
-    //resetGizmo(): void
-
-    //getGizmoHandle(): SwitchHandle
 }
 
 const CanvasRenderer: React.ForwardRefRenderFunction<CanvasHandle, CanvasProps> = (props, env) => {
@@ -159,6 +150,7 @@ const CanvasRenderer: React.ForwardRefRenderFunction<CanvasHandle, CanvasProps> 
 
     const setupGizmo = async () => {
         gizmo.current =  new GizmoManager(setDragging, scene.current, 3.5, 1);
+        let inMultiselectMode = false;
         let pressedTimestamp = 0;
         const ray = new Ray(Vector3.Zero(), Vector3.Zero()) // necessary to ensure import of Ray
         scene.current.onPointerObservable.add((pointerinfo) => {
@@ -170,12 +162,32 @@ const CanvasRenderer: React.ForwardRefRenderFunction<CanvasHandle, CanvasProps> 
                 let elapsedSincePressed = Date.now() - pressedTimestamp;
                 if (elapsedSincePressed < 200) {
                     let node = pointerinfo.pickInfo.pickedMesh;
-                    gizmo.current.removeAllNodes();
+                    if (!inMultiselectMode) {
+                        gizmo.current.removeAllNodes();
+                    }
                     if (!node.metadata?.immovable) {
                         gizmo.current.addNode(node);
                     }
                     setRootPos(gizmo.current.getRootScreenPosition());
                 };
+            }
+        });
+        scene.current.onKeyboardObservable.add((kbInfo) => {
+            switch (kbInfo.type) {
+                case KeyboardEventTypes.KEYDOWN:
+                    switch (kbInfo.event.key) {
+                        case 'Shift':
+                            inMultiselectMode = true;
+                            break;
+                    }
+                    break;
+                case KeyboardEventTypes.KEYUP:
+                    switch (kbInfo.event.key) {
+                        case 'Shift':
+                            inMultiselectMode = false;
+                            break;
+                    }
+                    break;
             }
         });
     }

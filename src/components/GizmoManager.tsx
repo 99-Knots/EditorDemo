@@ -191,7 +191,7 @@ export class GizmoManager {
     }
 
     public setRootRotation() {
-        if (this.nodes.length == 1 && !this.inWorldSpace) {
+        if (this.nodes.length >= 1 && !this.inWorldSpace) {
             this.root.rotationQuaternion = this.nodes[0][0].rotationQuaternion.clone();
         }
         else {
@@ -237,6 +237,12 @@ export class GizmoManager {
 
     public getNodes() {
         return this.nodes;
+    }
+
+    public getOrientationMatrix() {
+        let Rmat = Matrix.Identity();
+        Matrix.FromQuaternionToRef(this.root.rotationQuaternion, Rmat);
+        return Rmat;
     }
 
     private initPositionGizmo() {
@@ -409,7 +415,7 @@ class CustomBoundingBoxGizmo extends BoundingBoxGizmo {
                 Smat.setRowFromFloats(3, 0,   0,   0,   1);                                  // scale ratio relative to the previous scale
 
                 nodes.forEach( n => {
-                    const Rmat = this.attachedNode.getWorldMatrix().getRotationMatrix()
+                    const Rmat = this.gizmoManager.getOrientationMatrix();
                     const offset = n[1].matrix.getTranslation().add(center.subtract(n[1].matrix.getTranslation()));
 
                     let mat = n[1].matrix.multiply(toTranslationMatrix(offset.negate()));    // move to Origin
@@ -448,26 +454,29 @@ class CustomBoundingBoxGizmo extends BoundingBoxGizmo {
      * Calculate the minimum and maximum vectors of the attached nodes
      */
     protected setMinMax() {
-        const nodes = this.gizmoManager.getNodes();
-        if (nodes.length > 0) {
-            let NodeMinMax: MinMax;
 
-            let Rmat: Matrix = Matrix.Identity();
-            //Rmat = nodes[0][0].getWorldMatrix().getRotationMatrix();
-            //Rmat = nodes[0][0].rotationQuaternion.toRotationMatrix(Rmat)
-            Matrix.FromQuaternionToRef(nodes[0][0].rotationQuaternion, Rmat);
-            nodes[0][0].freezeWorldMatrix(nodes[0][0].getWorldMatrix().multiply(Rmat.clone().invert()))     // reset the nodes rotation
-            this.currentMinMaxFree = nodes[0][0].getHierarchyBoundingVectors(true);
+        const [first, ...rest] = this.gizmoManager.getNodes();
+        if (first) {
+            let nodeMinMax: MinMax;
+            let Rmat = this.gizmoManager.getOrientationMatrix();
+            let RmatInv = Rmat.clone().invert();
 
-            nodes[0][0].freezeWorldMatrix(nodes[0][0].getWorldMatrix().multiply(Rmat));         // return to original rotation
-            this.currentMinMaxAA = nodes[0][0].getHierarchyBoundingVectors(true);
+            first[0].freezeWorldMatrix(first[0].getWorldMatrix().multiply(RmatInv));
+            this.currentMinMaxFree = first[0].getHierarchyBoundingVectors(true);
+            first[0].freezeWorldMatrix(first[0].getWorldMatrix().multiply(Rmat));
+            this.currentMinMaxAA = first[0].getHierarchyBoundingVectors(true);
 
-            if (nodes.length > 1) {     // for more then one object the bounding box will always be axis aligned
-                nodes.forEach(n => {
-                    NodeMinMax = n[0].getHierarchyBoundingVectors(true);
-                    this.currentMinMaxFree.min = this.currentMinMaxAA.min.minimizeInPlace(NodeMinMax.min);
-                    this.currentMinMaxFree.max = this.currentMinMaxAA.max.maximizeInPlace(NodeMinMax.max);
-                });
+            if (rest) {
+                rest.forEach(n => {
+                    n[0].freezeWorldMatrix(n[0].getWorldMatrix().multiply(RmatInv));
+                    nodeMinMax = n[0].getHierarchyBoundingVectors(true);
+                    this.currentMinMaxFree.min.minimizeInPlace(nodeMinMax.min);
+                    this.currentMinMaxFree.max.maximizeInPlace(nodeMinMax.max);
+                    n[0].freezeWorldMatrix(n[0].getWorldMatrix().multiply(Rmat));
+                    nodeMinMax = n[0].getHierarchyBoundingVectors(true);
+                    this.currentMinMaxAA.min.minimizeInPlace(nodeMinMax.min);
+                    this.currentMinMaxAA.max.maximizeInPlace(nodeMinMax.max);
+                })
             }
         }
     }
