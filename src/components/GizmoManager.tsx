@@ -1,6 +1,10 @@
 import { TransformNode } from "@babylonjs/core/Meshes/transformNode";
+import { AbstractMesh } from "@babylonjs/core/Meshes/abstractMesh";
 import { Mesh } from "@babylonjs/core/Meshes/mesh";
 import { Vector3, Quaternion, Color3, Matrix } from "@babylonjs/core/Maths/math";
+import { Ray } from '@babylonjs/core/Culling/ray'
+import { RayHelper } from "@babylonjs/core";
+import { MeshBuilder } from '@babylonjs/core/Meshes/meshBuilder'
 import { Scene } from "@babylonjs/core/scene";
 import { UtilityLayerRenderer } from "@babylonjs/core/Rendering";
 import { HighlightLayer } from '@babylonjs/core/Layers/highlightLayer';
@@ -62,12 +66,16 @@ export class GizmoManager {
     private currentGizmo: Gizmo;                            // the gizmo currently active
     private layer: UtilityLayerRenderer;
     private hlLayer: HighlightLayer;
+    private dragging: (b: boolean) => void;
+    private rootScreenPos: (v: Vector3) => void;
 
 
-    constructor(setDragging: (b: boolean)=>void, scene: Scene, thickness?: number, scale?: number) {
+    constructor(setDragging: (b: boolean)=>void, setRootScreenPos: (v: Vector3)=>void, scene: Scene, thickness?: number, scale?: number) {
         this.root = new TransformNode('GizmoRoot', scene);
         this.layer = new UtilityLayerRenderer(scene);
         this.hlLayer = new HighlightLayer('SelectionHLLayer', scene);
+        this.dragging = setDragging
+        this.rootScreenPos = setRootScreenPos;
 
         this.root.rotationQuaternion = new Quaternion(0, 0, 0, 1);
 
@@ -83,20 +91,18 @@ export class GizmoManager {
 
         this.positionGizmo = new PositionGizmo(this.layer, thickness ?? 1);
         this.positionGizmo.scaleRatio = scale ?? 1;
-        this.positionGizmo.onDragStartObservable.add(() => {setDragging(true)});
-        this.positionGizmo.onDragEndObservable.add(() => {setDragging(false)})
+        //this.positionGizmo.onDragStartObservable.add(() => {setDragging(true)});
+        //this.positionGizmo.onDragEndObservable.add(() => {setDragging(false)})
         this.initPositionGizmo();
 
         this.rotationGizmo = new RotationGizmo(this.layer, undefined, undefined, thickness ?? 1);
         this.rotationGizmo.scaleRatio = scale ?? 1;
-        this.rotationGizmo.onDragStartObservable.add(() => {setDragging(true)});
-        this.rotationGizmo.onDragEndObservable.add(() => {setDragging(false)})
+        //this.rotationGizmo.onDragStartObservable.add(() => {setDragging(true)});
+        //this.rotationGizmo.onDragEndObservable.add(() => {setDragging(false)})
         this.initRotationGizmo();
 
         this.boundingBoxGizmo = new CustomBoundingBoxGizmo(setDragging, Color3.Gray(), this.layer, this);
         this.boundingBoxGizmo.attachedNode = this.root;
-        this.boundingBoxGizmo.onDragStartObservable.add(() => setDragging(true));
-        this.boundingBoxGizmo.onScaleBoxDragEndObservable.add(() => setDragging(false))
 
         this.changeMode(GizmoMode.Translate);
     }
@@ -187,6 +193,7 @@ export class GizmoManager {
                 max.maximizeInPlace(minmax.max);
             });
             this.root.position = min.add(max).scale(0.5);
+            this.rootScreenPos(this.getRootScreenPosition());
         }
     }
 
@@ -245,11 +252,200 @@ export class GizmoManager {
         return Rmat;
     }
 
+    public getBoundingMinMax(rotationMatrix?: Matrix) {
+        let Rmat = rotationMatrix ?? this.getOrientationMatrix();
+        let minmax = {min: Vector3.Zero(), max: Vector3.Zero()};
+        const [first, ...rest] = this.nodes;
+        if (first) {
+            let nodeMinMax = {min: Vector3.Zero(), max: Vector3.Zero()};
+            //let Rmat = this.getOrientationMatrix();
+            let RmatInv = Rmat.clone().invert();
+
+            first[0].freezeWorldMatrix(first[0].getWorldMatrix().multiply(RmatInv));
+            minmax = first[0].getHierarchyBoundingVectors(true);
+            first[0].freezeWorldMatrix(first[0].getWorldMatrix().multiply(Rmat));
+
+            if (rest) {
+                rest.forEach(n => {
+                    n[0].freezeWorldMatrix(n[0].getWorldMatrix().multiply(RmatInv));
+                    nodeMinMax = n[0].getHierarchyBoundingVectors(true);
+                    minmax.min.minimizeInPlace(nodeMinMax.min);
+                    minmax.max.maximizeInPlace(nodeMinMax.max);
+                    n[0].freezeWorldMatrix(n[0].getWorldMatrix().multiply(Rmat));
+                    nodeMinMax = n[0].getHierarchyBoundingVectors(true);
+                });
+            }
+        }
+        return minmax;
+    }
+
+    /**
+     * Approximation for moving the selected objects in a direction until one collides with another mesh.
+     * Cast a number of rays from the objects' Bounding Box's face into a direction and find the one that collides first.
+     * @param moveOppositeDirection Determines wether the objects shall be moved in the direction the gizmo's arrow is pointing or the opposite one. False by default.
+     * @param rayLength How long the rays for collision detection should be in meters. 50 by default.
+     * @param numberOfRays The number of rays, that shall be used for approximating when an object would hit something. 100 by default.
+     * @param numberOfRetries The number of times the program should try to generate a valid ray before moving to the next one. 5 by default.
+     */
+    snapAlongAxis(axis: 'x' | 'y' | 'z', moveOppositeDirection?: boolean, rayLength?: number, numberOfRays?: number, numberOfRetries?: number) {
+        // does not work with placing things on the narrow side of planes
+
+        const scene = this.layer.originalScene;
+
+        //let axis = 'y';
+        let moveForward = !moveOppositeDirection;
+        let direction = Vector3.Up();
+
+        const quat = this.root.rotationQuaternion;
+        const qinv = quat.invert();
+        const rotAxis = new Vector3(qinv.x, qinv.y, qinv.z).normalize();
+        const rotAngle = Math.acos(qinv.w) * 2;
+
+        if (!axis) return;
+        if (axis == 'x') {
+            direction = Vector3.Right();
+        }
+        else if (axis == 'y') {
+            direction = Vector3.Up();
+        }
+        else if (axis == 'z') {
+            direction = Vector3.Forward();
+        }
+        direction.rotateByQuaternionToRef(quat, direction);
+
+        let nrRays = numberOfRays ?? 100;  // might need some trial and error to find what works for performance
+        let nrRetries = numberOfRetries ?? 3;
+        let offset = direction.scale(0.0001);
+
+
+
+        if (this.nodes.length>0) {
+            let meshes: AbstractMesh[] = [];
+            let BBIsFlat = false;
+            let Rmat = Matrix.Identity();
+            Rmat = quat.toRotationMatrix(Rmat);
+            let minmax = this.getBoundingMinMax(Rmat);
+            this.nodes.forEach( n => {
+                meshes = meshes.concat(n[0] as Mesh)
+            })
+            let a: Vector3;
+            let b: Vector3;
+            let c: Vector3;
+            let dist: Vector3;
+
+            let shortestRay: Ray;
+
+            if (axis == 'x') {
+                a = new Vector3(0, minmax.max.y - minmax.min.y, 0);
+                b = new Vector3(0, 0, minmax.max.z - minmax.min.z);
+                c = new Vector3(minmax.max.x - minmax.min.x, 0, 0);
+            }
+            else if (axis == 'y') {
+                a = new Vector3(minmax.max.x - minmax.min.x, 0, 0);
+                b = new Vector3(0, 0, minmax.max.z - minmax.min.z);
+                c = new Vector3(0, minmax.max.y - minmax.min.y, 0);
+            }
+            else {
+                a = new Vector3(minmax.max.x - minmax.min.x, 0, 0);
+                b = new Vector3(0, minmax.max.y - minmax.min.y, 0);
+                c = new Vector3(0, 0, minmax.max.z - minmax.min.z);
+            }
+            //minmax.min.rotateByQuaternionAroundPointToRef(quat, this.root.position, minmax.min);
+            //minmax.max.rotateByQuaternionAroundPointToRef(quat, this.root.position, minmax.max);
+            minmax.min.rotateByQuaternionToRef(quat, minmax.min);
+            minmax.max.rotateByQuaternionToRef(quat, minmax.max);
+            a.rotateByQuaternionToRef(quat, a);
+            b.rotateByQuaternionToRef(quat, b);
+            c.rotateByQuaternionToRef(quat, c);
+            
+            if (a.length() == 0 || b.length() == 0) {   // determine if the Bounding Box's face towards the movementaxis has an area greater than 0, if not do not do backcheck. It won't work
+                BBIsFlat = true;
+            }
+            // this only kinda fixes the problem with planes. Determining a number of rays per selected node might be better suited for this, but would either reduce the accuracy if the given amount is split between them 
+            // or if every node gets assigned the same base amount of rays it might cause some performance issues with larger number of selected nodes.
+
+            for (let i = 0; i<nrRays; i++) {
+                let inObject = false;
+                let rayOrigin: Vector3;
+                let counter = 0;
+                // to approximate the contours of the selected objects, cast the random rays backwards and check, if they collide with one of the selected meshes
+                // maybe in the future do this separately for selected objects to avoid many needless re-tries for the empty space between
+                while (!inObject) {
+                    counter++;
+                    rayOrigin = minmax.min.add(a.scale(Math.random())).add(b.scale(Math.random()));
+                    rayOrigin.addInPlace(moveForward ? c.add(offset) : offset.negate());
+
+                    // draw generated rays on bounding box face
+                    //const rayhelper = new RayHelper(new Ray(rayOrigin, moveForward ? direction : direction.negate(), 50));
+                    //rayhelper.show(scene, Color3.Red());
+
+                    const backcheckRay = new Ray(rayOrigin, moveForward ? direction.negate() : direction, rayLength ?? 50);
+                    const hit = scene.pickWithRay(backcheckRay, mesh =>!! meshes.find(m => m==mesh));
+                    if (BBIsFlat) 
+                        break;
+                    if (hit.pickedMesh) {
+                        inObject = true;
+                        rayOrigin = hit.pickedPoint.clone();  // cast the collision ray from the object
+                        rayOrigin.addInPlace(moveForward ? offset : offset.negate());
+                    }
+                    else {
+                        if (counter > nrRetries)  // if the maximum number of retries was reached, stop generating new rays
+                            break;
+                    }
+
+                }
+                
+                if (inObject) { // if a valid ray was found, use it for determining the distance to move
+                    const ray = new Ray(rayOrigin, moveForward ? direction : direction.negate(), rayLength ?? 50);
+                    const hit = scene.pickWithRay(ray, mesh => !meshes.find(m => m==mesh));
+                    if (hit.pickedPoint) {
+                        const newDist = hit.pickedPoint.subtract(rayOrigin);
+                        if (!dist || (newDist.length() < dist.length())) {
+                            dist = newDist;
+                            shortestRay = new Ray(rayOrigin, moveForward ? direction : direction.negate(), newDist.length());
+                        }
+                        // draw the valid rays from the object face
+                        //const rayhelper = new RayHelper(new Ray(rayOrigin, moveForward ? direction : direction.negate(), newDist.length()));
+                        //rayhelper.show(scene);
+                    }
+                }
+            }
+             if (dist) {
+                // draw the ray that is used as a base for the movement
+                //const rayhelper = new RayHelper(shortestRay);
+                //rayhelper.show(scene, Color3.Red());
+
+                this.dragging(true);
+                const cList = [];
+                const Tmat = toTranslationMatrix(dist);
+                this.nodes.forEach(n => {
+                    n[0].freezeWorldMatrix(n[0].getWorldMatrix().multiply(Tmat))
+                    //n[0].position = n[1].position.add(dist);
+                    cList.push(new TransformCommand(n[0], n[1])); 
+                    n[1].matrix = n[0].getWorldMatrix().clone();
+                    //n[0].getChildren().forEach( c => {c.computeWorldMatrix(true)});
+                });
+                Commands().execute(new GroupCommand(cList));
+                this.setRootPosition();
+                this.dragging(false);
+                
+             }
+        
+            // draw the bounding box for the ray generation
+            //let l = MeshBuilder.CreateLines('lines', {points:
+            //    [minmax.min, minmax.min.add(a), minmax.min.add(a).add(b), minmax.min.add(b), minmax.min,
+            //    minmax.min.add(c), minmax.max.subtract(a), minmax.max.subtract(a).subtract(c), minmax.max.subtract(a), minmax.max, minmax.max.subtract(c), minmax.max, minmax.max.subtract(b), minmax.max.subtract(b).subtract(c), minmax.max.subtract(b), minmax.min.add(c)]
+            //}, this.layer.utilityLayerScene)
+        }
+    }
+
+
     private initPositionGizmo() {
         this.positionGizmo.planarGizmoEnabled = true;
 
         this.positionGizmo.onDragStartObservable.add(() => {
             this.initialTransform.position = this.root.position.clone();
+            this.dragging(true);
         });
 
         this.positionGizmo.onDragObservable.add(() => {
@@ -267,12 +463,14 @@ export class GizmoManager {
                 n[1].matrix = n[0].getWorldMatrix().clone();
             });
             Commands().execute(new GroupCommand(cList));
+            this.dragging(false)
         });
     }
 
     private initRotationGizmo() {
         this.rotationGizmo.onDragStartObservable.add(() => {
             this.initialTransform.rotation = this.root.rotationQuaternion.clone();
+            this.dragging(true);
         });
 
         this.rotationGizmo.onDragObservable.add(() => {
@@ -301,14 +499,14 @@ export class GizmoManager {
             });
             Commands().execute(new GroupCommand(cList));
             this.setRootRotation();     // reset the root to a neutral orientation
+            this.dragging(false);
         });
     }
 }
 
 
 class CustomBoundingBoxGizmo extends BoundingBoxGizmo {
-    protected currentMinMaxFree: MinMax;    // minimum and maximum vectors for an object aligned bounding box
-    protected currentMinMaxAA: MinMax;      // minimum and maximum vectors for an axis aligned bounding box
+    protected currentMinMax: MinMax;    // minimum and maximum vectors for the bounding box
     protected gizmoManager: GizmoManager;
     protected _scaleFromCenter: boolean;
 
@@ -347,8 +545,7 @@ class CustomBoundingBoxGizmo extends BoundingBoxGizmo {
             this.gizmoLayer.utilityLayerScene.removeMesh(s)
         });
 
-        this.currentMinMaxFree = { min: Vector3.Zero(), max: Vector3.Zero() };
-        this.currentMinMaxAA = { min: Vector3.Zero(), max: Vector3.Zero() };
+        this.currentMinMax = { min: Vector3.Zero(), max: Vector3.Zero() };
 
         this.initDragBehaviour(setDragging);
     }
@@ -451,51 +648,15 @@ class CustomBoundingBoxGizmo extends BoundingBoxGizmo {
     }
 
     /**
-     * Calculate the minimum and maximum vectors of the attached nodes
-     */
-    protected setMinMax() {
-
-        const [first, ...rest] = this.gizmoManager.getNodes();
-        if (first) {
-            let nodeMinMax: MinMax;
-            let Rmat = this.gizmoManager.getOrientationMatrix();
-            let RmatInv = Rmat.clone().invert();
-
-            first[0].freezeWorldMatrix(first[0].getWorldMatrix().multiply(RmatInv));
-            this.currentMinMaxFree = first[0].getHierarchyBoundingVectors(true);
-            first[0].freezeWorldMatrix(first[0].getWorldMatrix().multiply(Rmat));
-            this.currentMinMaxAA = first[0].getHierarchyBoundingVectors(true);
-
-            if (rest) {
-                rest.forEach(n => {
-                    n[0].freezeWorldMatrix(n[0].getWorldMatrix().multiply(RmatInv));
-                    nodeMinMax = n[0].getHierarchyBoundingVectors(true);
-                    this.currentMinMaxFree.min.minimizeInPlace(nodeMinMax.min);
-                    this.currentMinMaxFree.max.maximizeInPlace(nodeMinMax.max);
-                    n[0].freezeWorldMatrix(n[0].getWorldMatrix().multiply(Rmat));
-                    nodeMinMax = n[0].getHierarchyBoundingVectors(true);
-                    this.currentMinMaxAA.min.minimizeInPlace(nodeMinMax.min);
-                    this.currentMinMaxAA.max.maximizeInPlace(nodeMinMax.max);
-                })
-            }
-        }
-    }
-
-    /**
      * updates the bounding box and its children to fit all attached nodes
      * @param position optional, allows for repositioning the bounding box at another place
      * @param space indicates in which space the position is given. BONE is treated as LOCAL (LOCAL as default)
      */
     updateGizmo(position?: Vector3) {
         if (this.attachedNode) {    // only update anything if the gizmo is attached to something
-            this.setMinMax();
+            this.currentMinMax = this.gizmoManager.getBoundingMinMax();
 
-            if (this.updateGizmoRotationToMatchAttachedMesh) {      // if in local space use object aligned bounding box
-                this._boundingDimensions = this.currentMinMaxFree.max.subtract(this.currentMinMaxFree.min);
-            }
-            else {      // otherwise use axis aligned bounding box
-                this._boundingDimensions = this.currentMinMaxAA.max.subtract(this.currentMinMaxAA.min);
-            }
+            this._boundingDimensions = this.currentMinMax.max.subtract(this.currentMinMax.min);
             this._lineBoundingBox.scaling.copyFrom(this._boundingDimensions);
 
             if(position) {
