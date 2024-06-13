@@ -53,10 +53,10 @@ export const RadialButton = (props: {
             onMouseEnter={() => {setIsExpanded(true && props.isExpandable)}}
             onMouseLeave={() => {setIsExpanded(false)}}
         >
-            <span className={"icon " + (props.icon ? " bi bi-" + props.icon : "")} style={{transform: ' rotate(' + props.rotation + 'deg)'}}>
+            <span className={"icon bi" + (props.icon ? " bi-" + props.icon : "")} style={{alignSelf: 'center', transform: ' rotate(' + props.rotation + 'deg)'}}>
                 {props.children}
             </span>
-            <OptionSelection/>
+            {props.isExpandable? <OptionSelection/> : <></>}
         </div>
     )
 }

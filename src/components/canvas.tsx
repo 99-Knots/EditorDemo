@@ -4,7 +4,7 @@ import { Scene } from '@babylonjs/core/scene';
 import { ArcRotateCamera } from '@babylonjs/core/Cameras/arcRotateCamera';
 import { HemisphericLight } from '@babylonjs/core/Lights/hemisphericLight';
 import { MeshBuilder } from '@babylonjs/core/Meshes/meshBuilder'
-import { Vector3, Color3 } from '@babylonjs/core/Maths/math';
+import { Vector3, Color3, Vector4 } from '@babylonjs/core/Maths/math';
 import { SkyMaterial } from '@babylonjs/materials/sky';
 import { StandardMaterial } from '@babylonjs/core/Materials/standardMaterial';
 import { Texture } from '@babylonjs/core/Materials/Textures/texture';
@@ -46,7 +46,7 @@ const CanvasRenderer: React.ForwardRefRenderFunction<CanvasHandle, CanvasProps> 
     const [gizmoSpace, setGizmoSpace] = React.useState(GizmoSpace.Local);
     const [gizmoScaling, setGizmoScaling] = React.useState(true);
     const [rootPos, setRootPos] = React.useState(Vector3.Zero());
-    const [hiddenSelection, setHiddenSelection] = React.useState(undefined);
+    const [hiddenSelection, setHiddenSelection] = React.useState(true);
     const [cameraChange, setCameraChange] = React.useState(false);
     const [dragging, setDragging] = React.useState(false);
     const [axesAngles, setAxesAngles] = React.useState(Vector3.ZeroReadOnly);
@@ -69,14 +69,19 @@ const CanvasRenderer: React.ForwardRefRenderFunction<CanvasHandle, CanvasProps> 
 
     React.useEffect(() => {
         gizmo.current?.setToCentralScaling(gizmoScaling);
-    }, [gizmoScaling])
+    }, [gizmoScaling]);
 
     React.useEffect(() => {     // has to be declared after gizmoSpace effect or gizmo won't be updated yet
         if(gizmo.current){
             setRootPos(gizmo.current.getRootScreenPosition());
+        }
+    }, [hiddenSelection]);
+
+    React.useEffect(() => {
+        if (gizmo.current) {
             setAxesAngles(gizmo.current.getAxesScreenAngles());
         }
-    }, [hiddenSelection, gizmoSpace, rootPos])
+    }, [rootPos, gizmoSpace]);
 
     const setupCamera = async () => {
 		const arcRotCamera = new ArcRotateCamera(
@@ -111,14 +116,13 @@ const CanvasRenderer: React.ForwardRefRenderFunction<CanvasHandle, CanvasProps> 
 	}
 
 	const setupFloor = async () => {
-		const ground = MeshBuilder.CreateGround('ground', {width:15, height:15}, scene.current);
+        let d = 15; // diameter
+        const faceUVs = [new Vector4(0, 0, d, d), new Vector4(0, 0, d, 0.5), new Vector4(0, 0, d, d)];
+		const ground = MeshBuilder.CreateCylinder('ground', {height: 0.5, tessellation:d*2, diameter: d, faceUV: faceUVs}, scene.current);
+        ground.position = new Vector3(0, -0.7501, 0)
 		const groundMat = new StandardMaterial('groundMat', scene.current);
 		const tileTex = new Texture(floor_tex, scene.current);
-		tileTex.uScale = ground._width;
-		tileTex.vScale = ground._height;
 		const tileNormal = new Texture(floor_norm, scene.current);
-		tileNormal.uScale = ground._width;
-		tileNormal.vScale = ground._height;
 		groundMat.diffuseTexture = tileTex;
 		groundMat.bumpTexture = tileNormal;
 		groundMat.specularColor = new Color3(0.4, 0.4, 0.4);
@@ -129,10 +133,9 @@ const CanvasRenderer: React.ForwardRefRenderFunction<CanvasHandle, CanvasProps> 
 
     const addTestObject = async () => {
         const cube = MeshBuilder.CreateBox('box', {size: 1}, scene.current);
-        cube.translate(new Vector3(0, 1, 0), 0.5001);   // avoid clipping with ground
         cube.metadata = {immovable: false};
         const sphere = MeshBuilder.CreateSphere('sphere', {diameter: 1}, scene.current);
-        sphere.translate(new Vector3(2, 0.5001, 0), 1);
+        sphere.translate(new Vector3(2, 0, 0), 1);
         sphere.metadata = {immovable: false};
     }
 

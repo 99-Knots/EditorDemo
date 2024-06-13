@@ -17,6 +17,7 @@
     position: absolute;
     height: 1.6em;
     transition: max-width 1s;
+    overflow: hidden;
 }
 
 .gui {
@@ -58,6 +59,7 @@
 }
 
 .icon {
+    margin-right: 0.1px;
     padding: 0.3em;
 }
 
