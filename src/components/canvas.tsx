@@ -14,7 +14,7 @@ import { KeyboardEventTypes } from "@babylonjs/core/Events/keyboardEvents";
 import { Ray } from "@babylonjs/core/Culling/ray";
 
 import { SideMenu, MenuOption } from '../ui/sideMenu'
-import { MovingButton, RadialButton } from "../ui/multiSwitch";
+import { MovingButton, RadialButton, AxisMover } from "../ui/multiSwitch";
 
 import { GizmoManager, GizmoMode, GizmoSpace } from "./GizmoManager";
 import { Commands, CreateObjectCommand, DeleteObjectCommand } from "../utilities/commands";
@@ -278,9 +278,9 @@ const CanvasRenderer: React.ForwardRefRenderFunction<CanvasHandle, CanvasProps> 
                 }
                 {(gizmoMode == GizmoMode.Scale)?
                     (gizmoScaling == true) ? 
-                    <RadialButton angle={sectionAngle*8} radius={r} onClick={()=>{setGizmoScaling(false)}} icon="align-start"></RadialButton>
-                    :
-                    <RadialButton angle={sectionAngle*8} radius={r} onClick={()=>{setGizmoScaling(true)}} icon="align-center"></RadialButton>
+                        <RadialButton angle={sectionAngle*8} radius={r} onClick={()=>{setGizmoScaling(false)}} icon="align-start"></RadialButton>
+                        :
+                        <RadialButton angle={sectionAngle*8} radius={r} onClick={()=>{setGizmoScaling(true)}} icon="align-center"></RadialButton>
                     :
                     <></>
                 }
@@ -290,23 +290,23 @@ const CanvasRenderer: React.ForwardRefRenderFunction<CanvasHandle, CanvasProps> 
                 </RadialButton>
                 {(gizmoMode == GizmoMode.Translate )? 
                     <>
-                        <RadialButton angle={axesAngles.z + 180} color={'cyan'} radius={10} rotation={axesAngles.z + 90} onClick={()=>{gizmo.current.snapAlongAxis('z', true)}}>
-                            ⇢|
+                        <RadialButton angle={axesAngles.z + 180} color={'cyan'} radius={10} rotation={axesAngles.z + 180} onClick={()=>{gizmo.current.snapAlongAxis('z', true)}}>
+                            <AxisMover dashed={true}/>
                         </RadialButton>
-                        <RadialButton angle={axesAngles.y +180} color={'lime'} radius={10} rotation={axesAngles.y + 90} onClick={()=>{gizmo.current.snapAlongAxis('y', true)}}>
-                            ⇢|
+                        <RadialButton angle={axesAngles.y +180} color={'lime'} radius={10} rotation={axesAngles.y + 180} onClick={()=>{gizmo.current.snapAlongAxis('y', true)}}>
+                            <AxisMover dashed={true}/>
                         </RadialButton>
-                        <RadialButton angle={axesAngles.x + 180} color={'pink'} radius={10} rotation={axesAngles.x + 90} onClick={()=>{gizmo.current.snapAlongAxis('x', true)}}>
-                            ⇢|
+                        <RadialButton angle={axesAngles.x + 180} color={'#ff8080'} radius={10} rotation={axesAngles.x + 180} onClick={()=>{gizmo.current.snapAlongAxis('x', true)}}>
+                            <AxisMover dashed={true}/>
                         </RadialButton>
-                        <RadialButton angle={axesAngles.z} color={'cyan'} radius={10} rotation={axesAngles.z - 90} onClick={()=>{gizmo.current.snapAlongAxis('z')}}>
-                            →|
+                        <RadialButton angle={axesAngles.z} color={'cyan'} radius={10} rotation={axesAngles.z} onClick={()=>{gizmo.current.snapAlongAxis('z')}}>
+                            <AxisMover/>
                         </RadialButton>
-                        <RadialButton angle={axesAngles.y} color={'lime'} radius={10} rotation={axesAngles.y - 90} onClick={()=>{gizmo.current.snapAlongAxis('y')}}>
-                            →|
+                        <RadialButton angle={axesAngles.y} color={'lime'} radius={10} rotation={axesAngles.y} onClick={()=>{gizmo.current.snapAlongAxis('y')}}>
+                            <AxisMover/>
                         </RadialButton>
-                        <RadialButton angle={axesAngles.x} color={'pink'} radius={10} rotation={axesAngles.x - 90} onClick={()=>{gizmo.current.snapAlongAxis('x')}}>
-                            →|
+                        <RadialButton angle={axesAngles.x} color={'#ff8080'} radius={10} rotation={axesAngles.x} onClick={()=>{gizmo.current.snapAlongAxis('x')}}>
+                            <AxisMover/>
                         </RadialButton>
                     </>
                     : 

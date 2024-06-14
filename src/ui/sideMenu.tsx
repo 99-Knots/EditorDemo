@@ -17,7 +17,7 @@ export const MenuOption = (props: {
 }) => {
     return (
         <div className="option gui round" onClick={props.onClick}>
-            <span className={"icon " + (props.icon ? " bi bi-" + props.icon : "")}>
+            <span className={"icon bi" + (props.icon ? " bi-" + props.icon : "")}>
                 {props.children}
             </span>
         </div>

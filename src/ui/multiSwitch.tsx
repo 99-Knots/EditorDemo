@@ -61,6 +61,19 @@ export const RadialButton = (props: {
     )
 }
 
+export const AxisMover = (props:{dashed?: boolean}) => {
+    return (
+        <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 16 16">
+            <g strokeDasharray={props.dashed? "1, 2": ""} strokeLinejoin="round" strokeLinecap="round" strokeWidth="1.3" stroke="currentColor" fillRule="evenodd" >
+                <path  d="M8,15 v-11"/>
+                <path d="M5,7 l3,-3 m3,3 l-3,-3"/>
+                <path d="M1,2 h14"/>
+            </g>
+        </svg>
+    )
+
+}
+
 const OptionSelection = () => {
     return (
         <div className="options">

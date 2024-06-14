@@ -17,18 +17,23 @@
     position: absolute;
     height: 1.6em;
     transition: max-width 1s;
-    overflow: hidden;
 }
 
 .gui {
+    overflow: hidden;
     color: whitesmoke;
-    background-color: gray;
+    background-color: dimgray;
     outline: whitesmoke solid 0.5px;
+}
+
+.gui .icon:hover {
+    background-color: gray;
 }
 
 .bi { 
     display: flex;
     align-items: center;
+    justify-content: center;
 }
 
 .selected {
@@ -43,13 +48,9 @@
     flex-direction: column;
     align-items: center;
     position: absolute;
-    margin: 1em;
+    margin: 0.5em;
     user-select: none;
     gap: 0.3em;
-}
-
-.side-menu .option {
-    padding: 0.3em;
 }
 
 .gizmo-gui-center {
@@ -60,7 +61,9 @@
 
 .icon {
     margin-right: 0.1px;
-    padding: 0.3em;
+    /*padding: 0.3em;*/
+    height: 2em;
+    width: 2em;
 }
 
 .options {
