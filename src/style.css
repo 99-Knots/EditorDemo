@@ -30,11 +30,6 @@
     background-color: gray;
 }
 
-.selected {
-    background-color: blueviolet;
-    color: whitesmoke;
-}
-
 .side-menu {
     left: 0;
     top: 0;
@@ -55,19 +50,18 @@
 }
 
 .icon {
+    margin-right: 0.1px;
+    font-size: 66%;
+}
+
+.align {
     display: flex;
     align-items: center;
     justify-content: center;
-    margin-right: 0.1px;
     transition: font-size 1s, padding 1s;
-    font-size: 66%;
-    /*padding: 0.3em;*/
-    /*height: 2em;
-    width: 2em;*/
 }
 
 .options {
-    /*height: inherit;*/
     overflow: hidden;
     display: flex;
     font-size: 66%;
@@ -87,10 +81,18 @@
 }
 
 .test {
-    border-left: whitesmoke solid 1px;
     padding: 0.3em;
+    overflow: hidden;
+    white-space: nowrap;
 }
 
-.test:hover {
+.test2:hover {
     background-color: gray;
+}
+
+
+.test2 {
+    overflow: hidden;
+    outline: whitesmoke solid 0.5px;
+    transition: max-width 1s, font-size 1s;
 }

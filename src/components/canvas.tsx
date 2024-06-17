@@ -267,7 +267,7 @@ const CanvasRenderer: React.ForwardRefRenderFunction<CanvasHandle, CanvasProps> 
                 </RadialButton>
                 <RadialButton angle={sectionAngle*4} radius={r} onClick={() => {setGizmoMode(GizmoMode.Scale)}} icon="bounding-box-circles">
                 </RadialButton>
-                <ExpandableRadialButton angle={sectionAngle*6} radius={r} onClick={() => {}} text="0.1m" options={[{text: '0.1m', value: 0.1}]}>
+                <ExpandableRadialButton angle={sectionAngle*6} radius={r} onClick={(v) => {console.log('test', v)}} options={[{text: 'free', value: 0}, {text: '0.1m', value: 0.1}, {text: '0.2m', value: 0.2}, {text: '0.5m', value: 0.5}, {text: '1m', value: 1}, {text: '2m', value: 2}]}>
                 </ExpandableRadialButton>
                 {(gizmoSpace == GizmoSpace.World) ? 
                     <RadialButton angle={sectionAngle*7} radius={r} onClick={()=>{setGizmoSpace(GizmoSpace.Local)}} icon="box">
