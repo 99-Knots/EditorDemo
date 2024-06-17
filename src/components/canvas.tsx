@@ -14,7 +14,7 @@ import { KeyboardEventTypes } from "@babylonjs/core/Events/keyboardEvents";
 import { Ray } from "@babylonjs/core/Culling/ray";
 
 import { SideMenu, MenuOption } from '../ui/sideMenu'
-import { MovingButton, RadialButton, AxisMover } from "../ui/multiSwitch";
+import { MovingButton, RadialButton, ExpandableRadialButton, AxisMover } from "../ui/multiSwitch";
 
 import { GizmoManager, GizmoMode, GizmoSpace } from "./GizmoManager";
 import { Commands, CreateObjectCommand, DeleteObjectCommand } from "../utilities/commands";
@@ -251,6 +251,7 @@ const CanvasRenderer: React.ForwardRefRenderFunction<CanvasHandle, CanvasProps> 
 
     const r = 15;
     const sectionAngle = 90/6;
+    const d = 15
 
     // todo: maybe also use z-index to represent axis overlap in correct order?
     return (
@@ -259,16 +260,15 @@ const CanvasRenderer: React.ForwardRefRenderFunction<CanvasHandle, CanvasProps> 
             <SideMenu>
                 <MenuOption onClick={()=>{Commands().undo(); setHiddenSelection(true), gizmo.current.removeAllNodes()}} icon="arrow-90deg-left"></MenuOption>
             </SideMenu>
-            <MovingButton x={rootPos.x} y={rootPos.y} hidden={hiddenSelection}>
+            <MovingButton x={rootPos.x} y={rootPos.y} hidden={hiddenSelection} buttonSize={24}>
                 <RadialButton angle={sectionAngle*2} radius={r} onClick={() => {setGizmoMode(GizmoMode.Translate)}} icon="arrows-move">
                 </RadialButton>
                 <RadialButton angle={sectionAngle*3} radius={r} onClick={() => {setGizmoMode(GizmoMode.Rotate)}} icon="arrow-repeat">
                 </RadialButton>
                 <RadialButton angle={sectionAngle*4} radius={r} onClick={() => {setGizmoMode(GizmoMode.Scale)}} icon="bounding-box-circles">
                 </RadialButton>
-                <RadialButton angle={sectionAngle*6} radius={r} onClick={() => {}} isExpandable={true}>
-                    1m
-                </RadialButton>
+                <ExpandableRadialButton angle={sectionAngle*6} radius={r} onClick={() => {}} text="0.1m" options={[{text: '0.1m', value: 0.1}]}>
+                </ExpandableRadialButton>
                 {(gizmoSpace == GizmoSpace.World) ? 
                     <RadialButton angle={sectionAngle*7} radius={r} onClick={()=>{setGizmoSpace(GizmoSpace.Local)}} icon="box">
                     </RadialButton>

@@ -15,7 +15,7 @@
     display: flex;
     align-items: center;
     position: absolute;
-    height: 1.6em;
+    /*height: 1.6em;*/
     transition: max-width 1s;
 }
 
@@ -26,14 +26,8 @@
     outline: whitesmoke solid 0.5px;
 }
 
-.gui .icon:hover {
+.gui .icon:not(.selected):hover {
     background-color: gray;
-}
-
-.bi { 
-    display: flex;
-    align-items: center;
-    justify-content: center;
 }
 
 .selected {
@@ -54,22 +48,34 @@
 }
 
 .gizmo-gui-center {
+    font-family: 'Courier New', Courier, monospace;
     user-select: none;
     position: absolute;
     color: whitesmoke;
 }
 
 .icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
     margin-right: 0.1px;
+    transition: font-size 1s, padding 1s;
+    font-size: 66%;
     /*padding: 0.3em;*/
-    height: 2em;
-    width: 2em;
+    /*height: 2em;
+    width: 2em;*/
 }
 
 .options {
-    height: inherit;
+    /*height: inherit;*/
     overflow: hidden;
     display: flex;
+    font-size: 66%;
+}
+
+.option {
+    width: 2em;
+    height: 2em;
 }
 
 .centered {
@@ -83,4 +89,8 @@
 .test {
     border-left: whitesmoke solid 1px;
     padding: 0.3em;
+}
+
+.test:hover {
+    background-color: gray;
 }

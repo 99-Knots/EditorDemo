@@ -1,62 +1,79 @@
 import React from "react";
 
+const gizmoGuiContext = React.createContext(15);
+
 export const MovingButton = (props: {
     x: number, 
     y: number, 
     hidden: boolean,
-    children?: React.ReactNode
+    buttonSize?: number;
+    children?: React.ReactElement<IRadialButton>[]
 }) => {
 
     return (
-        <div className="gizmo-gui-center centered" style={{top: props.y??0, left: props.x??0, display: props.hidden?"none":"block"}}>
-            {props.children}
+        <div className="gizmo-gui-center" style={{top: props.y??0, left: props.x??0, display: props.hidden?"none":"block", fontSize: (props.buttonSize + 'px')?? undefined}}>
+            <gizmoGuiContext.Provider value={props.buttonSize}>
+            {
+                props.children.map((child, index) => {
+                    return child;}) 
+            }
+            </gizmoGuiContext.Provider>
         </div>
     )
 }
 
-export const RadialButton = (props: {
+type buttonOption = {
+    text: string,
+    value: any,
+}
+
+interface IRadialButton {
     radius: number,
     angle: number,
     onClick: (val: any) => void,
-    isExpandable?: boolean;
     icon?: string,
+    text?: string,
     children?: React.ReactNode,
     rotation?: number,
     color?: string,
-}) => {
+}
 
-    const [isExpanded, setIsExpanded] = React.useState(false);
-    const [width, setWidth] = React.useState('1.6em');
+interface IExRadial extends IRadialButton {
+    options: [buttonOption]
+}
 
-    React.useEffect(() => {
-        if (isExpanded)
-            setWidth('100em');
-        else
-            setWidth('1.6em');
-    }, [isExpanded])
+export const RadialButton = (props: IRadialButton) => {
+
+    const buttonSize = React.useContext(gizmoGuiContext);
 
     // todo: more dependency on size of icon element
 
     let x = Math.sin(Math.PI/180 * props.angle)*props.radius;
     let y = Math.cos(Math.PI/180 * props.angle)*props.radius;
-    
+
     return (
         <div 
             className="gizmo-mode-switch gui centered round" 
             style={{
                 top: -y +'vmin', 
                 left: x + 'vmin', 
-                maxWidth: width,
                 color: props.color,
             }} 
             onClick={props.onClick}
-            onMouseEnter={() => {setIsExpanded(true && props.isExpandable)}}
-            onMouseLeave={() => {setIsExpanded(false)}}
         >
-            <span className={"icon bi" + (props.icon ? " bi-" + props.icon : "")} style={{alignSelf: 'center', transform: ' rotate(' + props.rotation + 'deg)'}}>
+            <span 
+                className={"icon " + (props.icon ? "bi bi-" + props.icon : "")} 
+                style={{
+                    transform: ' rotate(' + props.rotation + 'deg)',
+                    height: buttonSize + 'px',
+                    minWidth: buttonSize + 'px',
+                    flexShrink: 0,
+                    fontSize: props.text? buttonSize/(props.text.length-1) : undefined,
+                }}
+            >
+                {props.text}
                 {props.children}
             </span>
-            {props.isExpandable? <OptionSelection/> : <></>}
         </div>
     )
 }
@@ -74,11 +91,66 @@ export const AxisMover = (props:{dashed?: boolean}) => {
 
 }
 
-const OptionSelection = () => {
+const OptionSelection = (props: {visible: boolean}) => {
+    const onClick = () => {console.log('testing')};
     return (
         <div className="options">
-            <div className="test">Teeeeeeeeest</div>
-            <div className="test">Testg</div>
+            <div onClick={onClick} className="test">0.1m</div>
+            <div onClick={onClick} className="test">0.5m</div>
+            <div onClick={onClick} className="test">1m</div>
+            <div onClick={onClick} className="test">Teeeeeeeeest</div>
+            <div onClick={onClick} className="test">Testg</div>
+        </div>
+    )
+}
+
+export const ExpandableRadialButton = (props: IExRadial ) => {
+    
+    const [isExpanded, setIsExpanded] = React.useState(false);
+    const [width, setWidth] = React.useState('1.6em');
+    const buttonSize = React.useContext(gizmoGuiContext);
+
+    React.useEffect(() => {
+        if (isExpanded)
+            setWidth('100em');
+        else
+            setWidth(buttonSize + 'px');
+    }, [isExpanded])
+
+    // todo: more dependency on size of icon element
+
+    let x = Math.sin(Math.PI/180 * props.angle)*props.radius;
+    let y = Math.cos(Math.PI/180 * props.angle)*props.radius;
+
+    return (
+        <div 
+            className="gizmo-mode-switch gui centered round" 
+            style={{
+                top: -y +'vmin', 
+                left: x + 'vmin', 
+                maxWidth: width,
+                maxHeight: buttonSize,
+                color: props.color,
+            }} 
+            onClick={props.onClick}
+            onMouseEnter={() => {setIsExpanded(true)}}
+            onMouseLeave={() => {setIsExpanded(false)}}
+        >
+            <span 
+                className={"icon " + (props.icon ? "bi bi-" + props.icon : "") + (isExpanded? ' selected': '')} 
+                style={{
+                    transform: ' rotate(' + props.rotation + 'deg)',
+                    height: buttonSize + 'px',
+                    minWidth: buttonSize + 'px',
+                    flexShrink: 0,
+                    padding: isExpanded? '0.3em' : '',
+                    fontSize: props.text&&!isExpanded ? buttonSize/(props.text.length-1) : undefined,
+                }}
+            >
+                {props.text}
+                {props.children}
+            </span>
+            <OptionSelection visible={isExpanded}/>
         </div>
     )
 }
