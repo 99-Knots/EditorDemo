@@ -1,7 +1,6 @@
 .main {
     position: relative;
     overflow: hidden;
-    font-size: 2vmin;
 }
 
 .babylon-canvas {
@@ -40,10 +39,11 @@
     margin: 0.5em;
     user-select: none;
     gap: 0.3em;
+    font-size: 150%;
 }
 
 .gizmo-gui-center {
-    font-family: 'Courier New', Courier, monospace;
+    /*font-family: 'Courier New', Courier, monospace;*/
     user-select: none;
     position: absolute;
     color: whitesmoke;
@@ -95,4 +95,8 @@
     overflow: hidden;
     outline: whitesmoke solid 0.5px;
     transition: max-width 1s, font-size 1s;
+}
+
+.hidden {
+    display: none;
 }

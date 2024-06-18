@@ -36,6 +36,7 @@ interface IRadialButton {
     children?: React.ReactNode,
     rotation?: number,
     color?: string,
+    inactive?: boolean
 }
 
 interface IExRadial extends IRadialButton {
@@ -53,7 +54,7 @@ export const RadialButton = (props: IRadialButton) => {
 
     return (
         <div 
-            className="gizmo-mode-switch gui centered round" 
+            className={"gizmo-mode-switch gui centered round " + (props.inactive? "hidden" : "")}
             style={{
                 top: -y +'vmin', 
                 left: x + 'vmin', 
@@ -91,20 +92,6 @@ export const AxisMover = (props:{dashed?: boolean}) => {
 
 }
 
-const OptionSelection = (props: {visible: boolean, selectedIndex: number}) => {
-
-    const onClick = () => {console.log('testing')};
-    return (
-        <div className="options">
-            <Option onClick={onClick} selectedIndex={props.selectedIndex} index={0} visible={props.visible} text="0.1m"/>
-            <Option onClick={onClick} selectedIndex={props.selectedIndex} index={1} visible={props.visible} text="0.5m" />
-            <Option onClick={onClick} selectedIndex={props.selectedIndex} index={2} visible={props.visible} text="1m" />
-            <Option onClick={onClick} selectedIndex={props.selectedIndex} index={3} visible={props.visible} text="Teeeeeeest" />
-            <Option onClick={onClick} selectedIndex={props.selectedIndex} index={4} visible={props.visible} text="Testg" />
-        </div>
-    )
-}
-
 const Option = (props: {
     onClick: (v: any)=>void, 
     text: string,
@@ -120,7 +107,7 @@ const Option = (props: {
     }, [props.selectedIndex, props.index])
 
     return (
-        <div className="test2 align" onClick={props.onClick} style={{maxWidth: props.visible? size*5 : (isSelected)? size : 0, minWidth: isSelected? size : 0, fontSize: isSelected&&!props.visible? size/props.text.length : undefined}}>
+        <div className="test2 align" onClick={props.onClick} style={{maxWidth: props.visible? size*5 : (isSelected)? size : 0, minWidth: isSelected? size : 0, fontSize: isSelected&&!props.visible? size*0.45 : undefined}}>
             <div className="test">{props.text}</div>
         </div>
     )
@@ -139,21 +126,20 @@ export const ExpandableRadialButton = (props: IExRadial ) => {
 
     return (
         <div 
-            className="gizmo-mode-switch gui centered round" 
+            className={"gizmo-mode-switch gui centered round " + (props.inactive? "hidden" : "")}
             style={{
                 top: -y +'vmin', 
                 left: x + 'vmin',
                 height: buttonSize,
                 color: props.color,
             }} 
-            onClick={props.onClick}
             onMouseEnter={() => {setIsExpanded(true)}}
             onMouseLeave={() => {setIsExpanded(false)}}
         >
             
             <div className="options">
                 {props.options.map((option, index) => {
-                    return <Option onClick={() => {props.onClick(option.value); setSelectedIndex(index)}} index={index} visible={isExpanded} selectedIndex={selectedIndex} text={option.text}></Option>
+                    return <Option onClick={() => {props.onClick(option.value); setSelectedIndex(index)}} key={index} index={index} visible={isExpanded} selectedIndex={selectedIndex} text={option.text}></Option>
                 })}
             </div>
         </div>

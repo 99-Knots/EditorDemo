@@ -45,6 +45,8 @@ const CanvasRenderer: React.ForwardRefRenderFunction<CanvasHandle, CanvasProps> 
     const [gizmoMode, setGizmoMode] = React.useState(GizmoMode.Translate);
     const [gizmoSpace, setGizmoSpace] = React.useState(GizmoSpace.Local);
     const [gizmoScaling, setGizmoScaling] = React.useState(true);
+    const [snapDist, setSnapDist] = React.useState(0);
+    const [snapAngle, setSnapAngle] = React.useState(0);
     const [rootPos, setRootPos] = React.useState(Vector3.Zero());
     const [hiddenSelection, setHiddenSelection] = React.useState(true);
     const [cameraChange, setCameraChange] = React.useState(false);
@@ -70,6 +72,14 @@ const CanvasRenderer: React.ForwardRefRenderFunction<CanvasHandle, CanvasProps> 
     React.useEffect(() => {
         gizmo.current?.setToCentralScaling(gizmoScaling);
     }, [gizmoScaling]);
+
+    React.useEffect(() => {
+        gizmo.current?.setTranslationSnap(snapDist);
+    }, [snapDist])
+
+    React.useEffect(() => {
+        gizmo.current?.setRotationSnap(snapAngle);
+    }, [snapAngle])
 
     React.useEffect(() => {     // has to be declared after gizmoSpace effect or gizmo won't be updated yet
         if(gizmo.current){
@@ -267,8 +277,13 @@ const CanvasRenderer: React.ForwardRefRenderFunction<CanvasHandle, CanvasProps> 
                 </RadialButton>
                 <RadialButton angle={sectionAngle*4} radius={r} onClick={() => {setGizmoMode(GizmoMode.Scale)}} icon="bounding-box-circles">
                 </RadialButton>
-                <ExpandableRadialButton angle={sectionAngle*6} radius={r} onClick={(v) => {console.log('test', v)}} options={[{text: 'free', value: 0}, {text: '0.1m', value: 0.1}, {text: '0.2m', value: 0.2}, {text: '0.5m', value: 0.5}, {text: '1m', value: 1}, {text: '2m', value: 2}]}>
+                <ExpandableRadialButton inactive={gizmoMode!==GizmoMode.Translate} angle={sectionAngle*6} radius={r} onClick={setSnapDist} options={[{text: 'free', value: 0}, {text: '0.1m', value: 0.1}, {text: '0.2m', value: 0.2}, {text: '0.5m', value: 0.5}, {text: '1m', value: 1}, {text: '2m', value: 2}]}>
                 </ExpandableRadialButton>
+                <ExpandableRadialButton inactive={gizmoMode!==GizmoMode.Rotate} angle={sectionAngle*6} radius={r} onClick={setSnapAngle} options={[{text: 'free', value: 0}, {text: '15°', value: 15}, {text: '30°', value: 30}, {text: '45°', value: 45}, {text: '60°', value: 60}, {text: '90°', value: 90}]}>
+                </ExpandableRadialButton>
+                <RadialButton inactive={gizmoMode!==GizmoMode.Scale || !gizmoScaling} angle={sectionAngle*6} radius={r} onClick={()=>{setGizmoScaling(false)}} icon="align-start"></RadialButton>
+                <RadialButton inactive={gizmoMode!==GizmoMode.Scale || gizmoScaling} angle={sectionAngle*6} radius={r} onClick={()=>{setGizmoScaling(true)}} icon="align-center"></RadialButton>
+                
                 {(gizmoSpace == GizmoSpace.World) ? 
                     <RadialButton angle={sectionAngle*7} radius={r} onClick={()=>{setGizmoSpace(GizmoSpace.Local)}} icon="box">
                     </RadialButton>
@@ -276,17 +291,11 @@ const CanvasRenderer: React.ForwardRefRenderFunction<CanvasHandle, CanvasProps> 
                     <RadialButton angle={sectionAngle*7} radius={r} onClick={()=>{setGizmoSpace(GizmoSpace.World)}} icon="globe2">
                     </RadialButton>
                 }
-                {(gizmoMode == GizmoMode.Scale)?
-                    (gizmoScaling == true) ? 
-                        <RadialButton angle={sectionAngle*8} radius={r} onClick={()=>{setGizmoScaling(false)}} icon="align-start"></RadialButton>
-                        :
-                        <RadialButton angle={sectionAngle*8} radius={r} onClick={()=>{setGizmoScaling(true)}} icon="align-center"></RadialButton>
-                    :
-                    <></>
+                {
                 }
-                <RadialButton angle={sectionAngle*9.5} radius={r} onClick={()=>{duplicateNode()}} icon="copy">
+                <RadialButton angle={sectionAngle*9} radius={r} onClick={()=>{duplicateNode()}} icon="copy">
                 </RadialButton>
-                <RadialButton angle={sectionAngle*10.5} radius={r} onClick={()=>{deleteNode()}} icon="trash3">
+                <RadialButton angle={sectionAngle*10} radius={r} onClick={()=>{deleteNode()}} icon="trash3">
                 </RadialButton>
                 {(gizmoMode == GizmoMode.Translate )? 
                     <>

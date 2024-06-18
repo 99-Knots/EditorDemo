@@ -147,6 +147,14 @@ export class GizmoManager {
         this.boundingBoxGizmo.updateGizmo();
     }
 
+    public setTranslationSnap(distance: number) {
+        this.positionGizmo.snapDistance = distance;
+    }
+
+    public setRotationSnap(angle: number) {
+        this.rotationGizmo.snapDistance = angle*Math.PI/180;
+    }
+
     public setToCentralScaling(val: boolean) {
         this.boundingBoxGizmo.scaleFromCenter = val;
     }
@@ -591,7 +599,6 @@ class CustomBoundingBoxGizmo extends BoundingBoxGizmo {
             });
 
             dragBehavior.onDragObservable.add( eventData => {
-
                 if (!this.attachedNode) {
                     dragBehavior.releaseDrag();     // fix for stuck drag mode when another key is pressed during drag
                     return
