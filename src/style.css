@@ -15,18 +15,19 @@
     align-items: center;
     position: absolute;
     /*height: 1.6em;*/
-    transition: max-width 1s;
+    transition: max-width 1s, left 0.2s, top 0.2s;
 }
 
 .gui {
     overflow: hidden;
     color: whitesmoke;
     background-color: dimgray;
-    outline: whitesmoke solid 0.5px;
+    pointer-events: all;
 }
 
 .gui .icon:not(.selected):hover {
     background-color: gray;
+    color: whitesmoke;
 }
 
 .side-menu {
@@ -47,6 +48,12 @@
     user-select: none;
     position: absolute;
     color: whitesmoke;
+    pointer-events: none;
+}
+
+.gizmo-gui-center>svg {
+    color: dimgray;
+    pointer-events: none;
 }
 
 .icon {
@@ -86,15 +93,33 @@
     white-space: nowrap;
 }
 
-.test2:hover {
+.test2:not(.selected):hover {
     background-color: gray;
+    color: whitesmoke;
 }
 
+.selected {
+    background-color: lightgray;
+    color: darkslategray;
+}
 
 .test2 {
     overflow: hidden;
-    outline: whitesmoke solid 0.5px;
-    transition: max-width 1s, font-size 1s;
+    transition: max-width 1s, font-size 1s, outline-width 1s;
+}
+
+.width-hidden {
+    max-width: 0;
+    outline-width: 0px;
+}
+
+.outline {
+    outline: whitesmoke solid 0.5px
+}
+
+path.outline {
+    outline: none;
+    color: whitesmoke;
 }
 
 .hidden {
