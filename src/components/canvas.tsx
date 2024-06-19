@@ -257,20 +257,23 @@ const CanvasRenderer: React.ForwardRefRenderFunction<CanvasHandle, CanvasProps> 
     }
     React.useImperativeHandle(env, () => handle);
 
-    const r = 15;
+    const r = 21;
+    const r2 = 15;
     const sectionAngle = 90/6;
 
     // todo: maybe also use z-index to represent axis overlap in correct order?
     return (
         <div className="main"> 
-            <canvas className='babylon-canvas' ref={canvas} />
-            <SideMenu>
+            <canvas className='babylon-canvas' ref={canvas}>
+                
+            </canvas>
+            <SideMenu buttonSize={5}>
                 <MenuOption onClick={()=>{Commands().undo(); setHiddenSelection(true), gizmo.current.removeAllNodes()}} icon="arrow-90deg-left"></MenuOption>
             </SideMenu>
-            <MovingButton x={rootPos.x} y={rootPos.y} hidden={hiddenSelection} buttonSize={3}>
-                <RadialButton angle={sectionAngle*2} radius={r} onClick={() => {setGizmoMode(GizmoMode.Translate)}} icon="arrows-move"/>
-                <RadialButton angle={sectionAngle*3} radius={r} onClick={() => {setGizmoMode(GizmoMode.Rotate)}} icon="arrow-repeat"/>
-                <RadialButton angle={sectionAngle*4} radius={r} onClick={() => {setGizmoMode(GizmoMode.Scale)}} icon="bounding-box-circles"/>
+            <MovingButton x={rootPos.x} y={rootPos.y} hidden={hiddenSelection} buttonSize={3.5}>
+                <RadialButton angle={sectionAngle*2} radius={r} onClick={() => {setGizmoMode(GizmoMode.Translate)}} isSelected={gizmoMode==GizmoMode.Translate} icon="arrows-move"/>
+                <RadialButton angle={sectionAngle*3} radius={r} onClick={() => {setGizmoMode(GizmoMode.Rotate)}} isSelected={gizmoMode==GizmoMode.Rotate} icon="arrow-repeat"/>
+                <RadialButton angle={sectionAngle*4} radius={r} onClick={() => {setGizmoMode(GizmoMode.Scale)}} isSelected={gizmoMode==GizmoMode.Scale} icon="bounding-box-circles"/>
                 <ExpandableRadialButton inactive={gizmoMode!==GizmoMode.Translate} angle={sectionAngle*6} radius={r} onClick={setSnapDist} options={[{text: 'free', value: 0}, {text: '0.1m', value: 0.1}, {text: '0.2m', value: 0.2}, {text: '0.5m', value: 0.5}, {text: '1m', value: 1}, {text: '2m', value: 2}]}/>
                 <ExpandableRadialButton inactive={gizmoMode!==GizmoMode.Rotate} angle={sectionAngle*6} radius={r} onClick={setSnapAngle} options={[{text: 'free', value: 0}, {text: '15°', value: 15}, {text: '30°', value: 30}, {text: '45°', value: 45}, {text: '60°', value: 60}, {text: '90°', value: 90}]}/>
                 <RadialButton inactive={gizmoMode!==GizmoMode.Scale || !gizmoScaling} angle={sectionAngle*6} radius={r} onClick={()=>{setGizmoScaling(false)}} icon="align-start"/>
@@ -287,23 +290,23 @@ const CanvasRenderer: React.ForwardRefRenderFunction<CanvasHandle, CanvasProps> 
                 <RadialButton angle={sectionAngle*10} radius={r} onClick={()=>{deleteNode()}} icon="trash3"/>
                 {(gizmoMode == GizmoMode.Translate )? 
                     <>
-                        <RadialButton angle={axesAngles.z + 180} color={'cyan'} radius={10} rotation={axesAngles.z + 180} onClick={()=>{gizmo.current.snapAlongAxis('z', true)}}>
-                            <AxisMover dashed={true}/>
+                        <RadialButton angle={axesAngles.z + 180} radius={r2} rotation={axesAngles.z + 180} onClick={()=>{gizmo.current.snapAlongAxis('z', true)}}>
+                            <AxisMover color={'cyan'} dashed={true}/>
                         </RadialButton>
-                        <RadialButton angle={axesAngles.y +180} color={'lime'} radius={10} rotation={axesAngles.y + 180} onClick={()=>{gizmo.current.snapAlongAxis('y', true)}}>
-                            <AxisMover dashed={true}/>
+                        <RadialButton angle={axesAngles.y +180} radius={r2} rotation={axesAngles.y + 180} onClick={()=>{gizmo.current.snapAlongAxis('y', true)}}>
+                            <AxisMover color={'lime'} dashed={true}/>
                         </RadialButton>
-                        <RadialButton angle={axesAngles.x + 180} color={'#ff8080'} radius={10} rotation={axesAngles.x + 180} onClick={()=>{gizmo.current.snapAlongAxis('x', true)}}>
-                            <AxisMover dashed={true}/>
+                        <RadialButton angle={axesAngles.x + 180} radius={r2} rotation={axesAngles.x + 180} onClick={()=>{gizmo.current.snapAlongAxis('x', true)}}>
+                            <AxisMover color={'crimson'} dashed={true}/>
                         </RadialButton>
-                        <RadialButton angle={axesAngles.z} color={'cyan'} radius={10} rotation={axesAngles.z} onClick={()=>{gizmo.current.snapAlongAxis('z')}}>
-                            <AxisMover/>
+                        <RadialButton angle={axesAngles.z} radius={r2} rotation={axesAngles.z} onClick={()=>{gizmo.current.snapAlongAxis('z')}}>
+                            <AxisMover color={'cyan'}/>
                         </RadialButton>
-                        <RadialButton angle={axesAngles.y} color={'lime'} radius={10} rotation={axesAngles.y} onClick={()=>{gizmo.current.snapAlongAxis('y')}}>
-                            <AxisMover/>
+                        <RadialButton angle={axesAngles.y} radius={r2} rotation={axesAngles.y} onClick={()=>{gizmo.current.snapAlongAxis('y')}}>
+                            <AxisMover color={'lime'}/>
                         </RadialButton>
-                        <RadialButton angle={axesAngles.x} color={'#ff8080'} radius={10} rotation={axesAngles.x} onClick={()=>{gizmo.current.snapAlongAxis('x')}}>
-                            <AxisMover/>
+                        <RadialButton angle={axesAngles.x} radius={r2} rotation={axesAngles.x} onClick={()=>{gizmo.current.snapAlongAxis('x')}}>
+                            <AxisMover color={'crimson'}/>
                         </RadialButton>
                     </>
                     : 
