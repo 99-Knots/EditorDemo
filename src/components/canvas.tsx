@@ -265,9 +265,7 @@ const CanvasRenderer: React.ForwardRefRenderFunction<CanvasHandle, CanvasProps> 
     // todo: maybe also use z-index to represent axis overlap in correct order?
     return (
         <div className="main"> 
-            <canvas className='babylon-canvas' ref={canvas}>
-                
-            </canvas>
+            <canvas className='babylon-canvas' ref={canvas}/>
             <SideMenu buttonSize={5}>
                 <MenuOption onClick={()=>{Commands().undo(); setHiddenSelection(true), gizmo.current.removeAllNodes()}} icon="arrow-90deg-left"></MenuOption>
             </SideMenu>
