@@ -1,10 +1,11 @@
 import React from "react";
 
 export const SideMenu = ( props: {
+    buttonSize: number,
     children?: React.ReactNode,
 }) => {
     return(
-        <div className="side-menu">
+        <div className="side-menu" style={{fontSize: `${props.buttonSize*0.66}vmax`}}>
             {props.children}
         </div>
     )

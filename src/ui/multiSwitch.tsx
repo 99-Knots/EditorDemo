@@ -6,7 +6,7 @@ export const MovingButton = (props: {
     x: number, 
     y: number, 
     hidden: boolean,
-    buttonSize?: number;
+    buttonSize: number;
     children?: React.ReactElement<IRadialButton>[]
 }) => {
 
@@ -24,7 +24,7 @@ export const MovingButton = (props: {
     }, {minAngle: Infinity, maxAngle: -Infinity});
     
     return (
-        <div className="gizmo-gui-center" style={{top: props.y??0, left: props.x??0, display: props.hidden?"none":"block", fontSize: (props.buttonSize + 'vmin')?? undefined}}>
+        <div className="gizmo-gui-center" style={{top: props.y??0, left: props.x??0, display: props.hidden?"none":"block", fontSize: `${props.buttonSize}rem`}}>
             <gizmoGuiContext.Provider value={props.buttonSize}>
                 <CircleCut radius={radius} angle1={minAngle} angle2={maxAngle}/>
                 {
@@ -52,7 +52,8 @@ interface IRadialButton {
     children?: React.ReactNode,
     rotation?: number,
     color?: string,
-    inactive?: boolean
+    inactive?: boolean,
+    isSelected?: boolean,
 }
 
 interface IExRadial extends IRadialButton {
@@ -72,18 +73,18 @@ export const RadialButton = (props: IRadialButton) => {
         <div 
             className={"gizmo-mode-switch gui outline centered round " + (props.inactive? "hidden" : "")}
             style={{
-                top: -y +'vmin', 
-                left: x + 'vmin', 
+                top: -y +'rem', 
+                left: x + 'rem', 
                 color: props.color,
             }} 
             onClick={props.onClick}
         >
             <span 
-                className={"icon align " + (props.icon ? "bi bi-" + props.icon : "")} 
+                className={"icon align " + (props.icon ? "bi bi-" + props.icon : "")  + (props.isSelected? " selected" : "")} 
                 style={{
                     transform: 'rotate(' + props.rotation + 'deg)',
-                    height: buttonSize + 'vmin',
-                    minWidth: buttonSize + 'vmin',
+                    height: buttonSize + 'rem',
+                    minWidth: buttonSize + 'rem',
                     flexShrink: 0,
                     fontSize: props.text? buttonSize/(props.text.length-1) : undefined,
                 }}
@@ -95,13 +96,18 @@ export const RadialButton = (props: IRadialButton) => {
     )
 }
 
-export const AxisMover = (props:{dashed?: boolean}) => {
+export const AxisMover = (props:{dashed?: boolean, color?: string}) => {
     return (
         <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 16 16">
-            <g strokeDasharray={props.dashed? "1, 2": ""} strokeLinejoin="round" strokeLinecap="round" strokeWidth="1.3" stroke="currentColor" fillRule="evenodd" >
-                <path  d="M8,15 v-11"/>
+            <g className="outline" strokeDasharray={props.dashed? "1, 2": ""} strokeLinejoin="round" strokeLinecap="round" strokeWidth="1.7" stroke="currentColor" fillRule="evenodd" >
+                <path  d="M8,14 v-10"/>
                 <path d="M5,7 l3,-3 m3,3 l-3,-3"/>
-                <path d="M1,2 h14"/>
+                <path d="M1.5,2 h13"/>
+            </g>
+            <g strokeDasharray={props.dashed? "1, 2": ""} strokeLinejoin="round" strokeLinecap="round" strokeWidth="1" stroke={props.color} fillRule="evenodd" >
+                <path  d="M8,14 v-10"/>
+                <path d="M5,7 l3,-3 m3,3 l-3,-3"/>
+                <path d="M1.5,2 h13"/>
             </g>
         </svg>
     )
@@ -117,7 +123,7 @@ const CircleCut = (props:{angle1: number, angle2: number, radius: number}) =>{
     let y2 = Math.cos(Math.PI/180 * props.angle2)*props.radius;
 
     return (
-        <svg style={{transform: `translate(0vmin, -${props.radius}vmin)`}} xmlns="http://www.w3.org/2000/svg" width={2*props.radius + "vmin"} height={2*props.radius +"vmin"} viewBox={`0 0 ${props.radius*2} ${props.radius*2}`}>
+        <svg style={{transform: `translate(0rem, -${props.radius}rem)`}} xmlns="http://www.w3.org/2000/svg" width={2*props.radius + "rem"} height={2*props.radius +"rem"} viewBox={`0 0 ${props.radius*2} ${props.radius*2}`}>
             <g strokeLinecap="round" stroke="currentColor" fill="none">
                 <path strokeWidth={width+0.1} className="outline" d={`M${x1} ${props.radius-y1} A${props.radius} ${props.radius} 0 0 1 ${x2} ${props.radius-y2}`}/>
                 <path strokeWidth={width} d={`M${x1} ${props.radius-y1} A${props.radius} ${props.radius} 0 0 1 ${x2} ${props.radius-y2}`}/>
@@ -142,7 +148,7 @@ const Option = (props: {
     }, [props.selectedIndex, props.index])
 
     return (
-        <div className={"test2 align outline " + (isSelected? "selected" : "") + (!(isSelected||props.visible)? " width-hidden" : "")} onClick={props.onClick} style={{maxWidth: (props.visible? size*5: (isSelected)? size : 0)  + "vmin" , minWidth: isSelected? size  + "vmin"  : 0, fontSize: isSelected&&!props.visible? size*0.45  + "vmin" : undefined}}>
+        <div className={"test2 align outline " + (isSelected? "selected" : "") + (!(isSelected||props.visible)? " width-hidden" : "")} onClick={props.onClick} style={{maxWidth: (props.visible? size*5: (isSelected)? size : 0)  + "rem" , minWidth: isSelected? size  + "rem"  : 0, fontSize: isSelected&&!props.visible? `${size*0.45}rem` : undefined}}>
             <div className="test">{props.text}</div>
         </div>
     )
@@ -161,11 +167,11 @@ export const ExpandableRadialButton = (props: IExRadial ) => {
 
     return (
         <div 
-            className={"gizmo-mode-switch gui centered round " + (props.inactive? "hidden" : "")}
+            className={"gizmo-mode-switch gui outline centered round " + (props.inactive? "hidden" : "")}
             style={{
-                top: -y +'vmin', 
-                left: x + 'vmin',
-                height: buttonSize  + "vmin" ,
+                top: -y +'rem', 
+                left: x + 'rem',
+                height: buttonSize  + "rem" ,
                 color: props.color,
             }} 
             onMouseEnter={() => {setIsExpanded(true)}}

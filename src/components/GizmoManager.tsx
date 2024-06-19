@@ -91,14 +91,10 @@ export class GizmoManager {
 
         this.positionGizmo = new PositionGizmo(this.layer, thickness ?? 1);
         this.positionGizmo.scaleRatio = scale ?? 1;
-        //this.positionGizmo.onDragStartObservable.add(() => {setDragging(true)});
-        //this.positionGizmo.onDragEndObservable.add(() => {setDragging(false)})
         this.initPositionGizmo();
 
         this.rotationGizmo = new RotationGizmo(this.layer, undefined, undefined, thickness ?? 1);
         this.rotationGizmo.scaleRatio = scale ?? 1;
-        //this.rotationGizmo.onDragStartObservable.add(() => {setDragging(true)});
-        //this.rotationGizmo.onDragEndObservable.add(() => {setDragging(false)})
         this.initRotationGizmo();
 
         this.boundingBoxGizmo = new CustomBoundingBoxGizmo(setDragging, Color3.Gray(), this.layer, this);
