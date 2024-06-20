@@ -116,17 +116,25 @@ export const AxisMover = (props:{dashed?: boolean, color?: string}) => {
 const CircleCut = (props:{angle1: number, angle2: number, radius: number}) =>{
 
     const buttonSize = React.useContext(gizmoGuiContext);
-    let width = buttonSize/6
-    let x1 = Math.sin(Math.PI/180 * props.angle1)*props.radius;
-    let y1 = Math.cos(Math.PI/180 * props.angle1)*props.radius;
-    let x2 = Math.sin(Math.PI/180 * props.angle2)*props.radius;
-    let y2 = Math.cos(Math.PI/180 * props.angle2)*props.radius;
+    const width = buttonSize/6
+    const x1 = Math.sin(Math.PI/180 * props.angle1)*props.radius;
+    const y1 = -Math.cos(Math.PI/180 * props.angle1)*props.radius;  // negative because y-axis is top to bottom
+    const x2 = Math.sin(Math.PI/180 * props.angle2)*props.radius;
+    const y2 = -Math.cos(Math.PI/180 * props.angle2)*props.radius;
+    const offset = props.radius + buttonSize/2
 
     return (
-        <svg style={{transform: `translate(0rem, -${props.radius}rem)`}} xmlns="http://www.w3.org/2000/svg" width={2*props.radius + "rem"} height={2*props.radius +"rem"} viewBox={`0 0 ${props.radius*2} ${props.radius*2}`}>
+        <svg style={{transform: `translate(-${props.radius+buttonSize/2}rem, -${props.radius+buttonSize/2}rem)`}} xmlns="http://www.w3.org/2000/svg" width={`${2*props.radius+buttonSize}rem`} height={`${2*props.radius+buttonSize}rem`} viewBox={`0 0 ${props.radius*2+buttonSize} ${props.radius*2+buttonSize}`}>
             <g strokeLinecap="round" stroke="currentColor" fill="none">
-                <path strokeWidth={width+0.1} className="outline" d={`M${x1} ${props.radius-y1} A${props.radius} ${props.radius} 0 0 1 ${x2} ${props.radius-y2}`}/>
-                <path strokeWidth={width} d={`M${x1} ${props.radius-y1} A${props.radius} ${props.radius} 0 0 1 ${x2} ${props.radius-y2}`}/>
+                <path 
+                    strokeWidth={width+0.1} 
+                    className="outline" 
+                    d={`M${offset} ${offset} m${x1} ${y1} a${props.radius} ${props.radius} 0 0 1 ${x2-x1} ${y2-y1}`}
+                />
+                <path 
+                    strokeWidth={width} 
+                    d={`M${offset} ${offset} m${x1} ${y1} a${props.radius} ${props.radius} 0 0 1 ${x2-x1} ${y2-y1}`}
+                />
             </g>
         </svg>
     );
@@ -148,8 +156,8 @@ const Option = (props: {
     }, [props.selectedIndex, props.index])
 
     return (
-        <div className={"test2 align outline " + (isSelected? "selected" : "") + (!(isSelected||props.visible)? " width-hidden" : "")} onClick={props.onClick} style={{maxWidth: (props.visible? size*5: (isSelected)? size : 0)  + "rem" , minWidth: isSelected? size  + "rem"  : 0, fontSize: isSelected&&!props.visible? `${size*0.45}rem` : undefined}}>
-            <div className="test">{props.text}</div>
+        <div className={"setting-container align outline " + (isSelected? "selected" : "") + (!(isSelected||props.visible)? " width-hidden" : "")} onClick={props.onClick} style={{maxWidth: (props.visible? size*5: (isSelected)? size : 0)  + "rem" , minWidth: isSelected? size  + "rem"  : 0, fontSize: isSelected&&!props.visible? `${size*0.45}rem` : `${size*0.60}rem`}}>
+            <div className="setting">{props.text}</div>
         </div>
     )
 }
@@ -178,7 +186,7 @@ export const ExpandableRadialButton = (props: IExRadial ) => {
             onMouseLeave={() => {setIsExpanded(false)}}
         >
             
-            <div className="options">
+            <div className="settings-array">
                 {props.options.map((option, index) => {
                     return <Option onClick={() => {props.onClick(option.value); setSelectedIndex(index)}} key={index} index={index} visible={isExpanded} selectedIndex={selectedIndex} text={option.text}></Option>
                 })}

@@ -68,14 +68,27 @@ export class GizmoManager {
     private hlLayer: HighlightLayer;
     private dragging: (b: boolean) => void;
     private rootScreenPos: (v: Vector3) => void;
+    private setMultiSelect: (b: boolean) => void;
+    private _inMultiselectMode: boolean;
 
+    public set inMultiSelectMode(b: boolean) {
+        this._inMultiselectMode = b;
+        this.setMultiSelect(this.inMultiSelectMode);
+    }
 
-    constructor(setDragging: (b: boolean)=>void, setRootScreenPos: (v: Vector3)=>void, scene: Scene, thickness?: number, scale?: number) {
+    public get inMultiSelectMode() {
+        return this._inMultiselectMode;
+    }
+
+    constructor(setDragging: (b: boolean)=>void, setRootScreenPos: (v: Vector3)=>void, setMultiselect: (b: boolean)=>void, scene: Scene, thickness?: number, scale?: number) {
         this.root = new TransformNode('GizmoRoot', scene);
         this.layer = new UtilityLayerRenderer(scene);
         this.hlLayer = new HighlightLayer('SelectionHLLayer', scene);
         this.dragging = setDragging
         this.rootScreenPos = setRootScreenPos;
+        this.setMultiSelect = setMultiselect;
+
+        this.inMultiSelectMode = false;
 
         this.root.rotationQuaternion = new Quaternion(0, 0, 0, 1);
 
@@ -102,6 +115,7 @@ export class GizmoManager {
 
         this.changeMode(GizmoMode.Translate);
     }
+
 
     public changeMode(mode: GizmoMode) {
         this.rotationGizmo.attachedNode = null;

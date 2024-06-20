@@ -32,7 +32,6 @@ html, body {
     display: flex;
     align-items: center;
     position: absolute;
-    /*height: 1.6em;*/
     transition: max-width 1s, left 0.2s, top 0.2s;
 }
 
@@ -58,11 +57,9 @@ html, body {
     margin: 0.5em;
     user-select: none;
     gap: 0.3em;
-    /*font-size: 150%;*/
 }
 
 .gizmo-gui-center {
-    /*font-family: 'Courier New', Courier, monospace;*/
     user-select: none;
     position: absolute;
     color: whitesmoke;
@@ -72,6 +69,10 @@ html, body {
 .gizmo-gui-center>svg {
     color: dimgray;
     pointer-events: none;
+}
+
+.gizmo-gui-center path {
+    transition: d 0.2s;
 }
 
 .icon {
@@ -86,10 +87,11 @@ html, body {
     transition: font-size 1s, padding 1s;
 }
 
-.options {
+.settings-array {
     overflow: hidden;
     display: flex;
     font-size: 66%;
+    height: 100%;
 }
 
 .option {
@@ -105,13 +107,13 @@ html, body {
     border-radius: 1em;
 }
 
-.test {
+.setting {
     padding: 0.3em;
     overflow: hidden;
     white-space: nowrap;
 }
 
-.test2:not(.selected):hover {
+.setting-container:not(.selected):hover {
     background-color: gray;
     color: whitesmoke;
 }
@@ -121,8 +123,9 @@ html, body {
     color: #393939;
 }
 
-.test2 {
+.setting-container {
     overflow: hidden;
+    height: 100%;
     transition: max-width 1s, font-size 1s, outline-width 1s;
 }
 

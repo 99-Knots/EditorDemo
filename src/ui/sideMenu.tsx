@@ -13,11 +13,12 @@ export const SideMenu = ( props: {
 
 export const MenuOption = (props: {
     icon?: string,
+    isSelected?: boolean,
     onClick?: () => void,
     children?: React.ReactNode
 }) => {
     return (
-        <div className="icon align outline option gui round" onClick={props.onClick}>
+        <div className={"icon align outline option gui round" + (props.isSelected? " selected": "")} onClick={props.onClick}>
             <span className={"bi" + (props.icon ? " bi-" + props.icon : "")}>
                 {props.children}
             </span>
