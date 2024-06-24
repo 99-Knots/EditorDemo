@@ -460,7 +460,9 @@ export class GizmoManager {
 
     private initPositionGizmo() {
         this.positionGizmo.planarGizmoEnabled = true;
-
+        this.positionGizmo.xPlaneGizmo.scaleRatio*= 1.5;
+        this.positionGizmo.yPlaneGizmo.scaleRatio*= 1.5;
+        this.positionGizmo.zPlaneGizmo.scaleRatio*= 1.5;
         this.positionGizmo.onDragStartObservable.add(() => {
             this.initialTransform.position = this.root.position.clone();
             this.dragging(true);
@@ -549,13 +551,13 @@ class CustomBoundingBoxGizmo extends BoundingBoxGizmo {
      * @param utilLayer Utility Layer that the gizmo will be added to
      * @param gizmoManager Gizmo Manager that will handle the gizmo
      */
-    constructor(setDragging: (b: boolean)=>void, color: Color3, utilLayer: UtilityLayerRenderer, gizmoManager: GizmoManager) {
+    constructor(setDragging: (b: boolean)=>void, color: Color3, utilLayer: UtilityLayerRenderer, gizmoManager: GizmoManager, thickness?: number) {
         super(color, utilLayer)
         this._hoverColoredMaterial.emissiveColor = new Color3(1, 0.7, 0);
         this.gizmoManager = gizmoManager;
         this._scaleFromCenter = true;
         this._scaleDragSpeed *= 2;
-        this.scaleBoxSize = 0.08;
+        this.scaleBoxSize = 0.1 * thickness/3;
 
         // 'disable' rotation spheres by removing them from scene, since this is a scale-only gizmo!
         this._rootMesh.removeChild(this._rotateSpheresParent);

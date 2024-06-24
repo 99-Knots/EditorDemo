@@ -29,8 +29,6 @@ html, body {
 }
 
 .gizmo-mode-switch {
-    display: flex;
-    align-items: center;
     position: absolute;
     transition: max-width 1s, left 0.2s, top 0.2s;
 }
@@ -71,20 +69,16 @@ html, body {
     pointer-events: none;
 }
 
-.gizmo-gui-center path {
-    transition: d 0.2s;
-}
-
 .icon {
     margin-right: 0.1px;
     font-size: 66%;
+    transition: font-size 1s, padding 1s;
 }
 
 .align {
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: font-size 1s, padding 1s;
 }
 
 .settings-array {
@@ -97,6 +91,11 @@ html, body {
 .option {
     width: 2em;
     height: 2em;
+}
+
+.option:not(.selected):hover {
+    background-color: gray;
+    color: whitesmoke;
 }
 
 .centered {

@@ -5,7 +5,7 @@ export const SideMenu = ( props: {
     children?: React.ReactNode,
 }) => {
     return(
-        <div className="side-menu" style={{fontSize: `${props.buttonSize*0.66}vmax`}}>
+        <div className="side-menu" style={{fontSize: `${props.buttonSize*0.66}rem`}}>
             {props.children}
         </div>
     )

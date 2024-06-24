@@ -57,7 +57,7 @@ const CanvasRenderer: React.ForwardRefRenderFunction<CanvasHandle, CanvasProps> 
 
     let isMoving = false;
     let wasMoving = false;
-    let gizmoScale = 0.7;
+    let gizmoScale = 0.9;
 
 
     React.useEffect(() => {
@@ -274,15 +274,15 @@ const CanvasRenderer: React.ForwardRefRenderFunction<CanvasHandle, CanvasProps> 
     return (
         <div className="main"> 
             <canvas className='babylon-canvas' ref={canvas}/>
-            <SideMenu buttonSize={4 + (isVertical? 1: 0 *2)}>
+            <SideMenu buttonSize={5 + (isVertical? 1: 0 *2)}>
                 <MenuOption onClick={()=>{Commands().undo(); setHiddenSelection(true), gizmo.current.removeAllNodes()}} icon="arrow-90deg-left"></MenuOption>
                 <MenuOption isSelected={inMultiselect} onClick={()=>{gizmo.current.inMultiSelectMode = !gizmo.current.inMultiSelectMode;}} icon="plus-square-dotted"></MenuOption>
             </SideMenu>
-            <MovingButton x={rootPos.x} y={rootPos.y} hidden={hiddenSelection} buttonSize={3.5}>
+            <MovingButton x={rootPos.x} y={rootPos.y} hidden={hiddenSelection} buttonSize={4}>
                 {(gizmoMode == GizmoMode.Translate )? 
                     <>
                         <RadialButton angle={axesAngles.z + 180} radius={rInner} rotation={axesAngles.z + 180} onClick={()=>{gizmo.current.snapAlongAxis('z', true)}}>
-                            <AxisMover color={'cyan'} dashed={true}/>
+                            <AxisMover color={'dodgerblue'} dashed={true}/>
                         </RadialButton>
                         <RadialButton angle={axesAngles.y +180} radius={rInner} rotation={axesAngles.y + 180} onClick={()=>{gizmo.current.snapAlongAxis('y', true)}}>
                             <AxisMover color={'lime'} dashed={true}/>
@@ -291,7 +291,7 @@ const CanvasRenderer: React.ForwardRefRenderFunction<CanvasHandle, CanvasProps> 
                             <AxisMover color={'crimson'} dashed={true}/>
                         </RadialButton>
                         <RadialButton angle={axesAngles.z} radius={rInner} rotation={axesAngles.z} onClick={()=>{gizmo.current.snapAlongAxis('z')}}>
-                            <AxisMover color={'cyan'}/>
+                            <AxisMover color={'dodgerblue'}/>
                         </RadialButton>
                         <RadialButton angle={axesAngles.y} radius={rInner} rotation={axesAngles.y} onClick={()=>{gizmo.current.snapAlongAxis('y')}}>
                             <AxisMover color={'lime'}/>

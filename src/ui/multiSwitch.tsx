@@ -71,7 +71,7 @@ export const RadialButton = (props: IRadialButton) => {
 
     return (
         <div 
-            className={"gizmo-mode-switch gui outline centered round " + (props.inactive? "hidden" : "")}
+            className={"gizmo-mode-switch gui align outline centered round " + (props.inactive? "hidden" : "")}
             style={{
                 top: -y +'rem', 
                 left: x + 'rem', 
@@ -175,7 +175,7 @@ export const ExpandableRadialButton = (props: IExRadial ) => {
 
     return (
         <div 
-            className={"gizmo-mode-switch gui outline centered round " + (props.inactive? "hidden" : "")}
+            className={"gizmo-mode-switch gui align outline centered round " + (props.inactive? "hidden" : "")}
             style={{
                 top: -y +'rem', 
                 left: x + 'rem',
@@ -188,7 +188,7 @@ export const ExpandableRadialButton = (props: IExRadial ) => {
             
             <div className="settings-array">
                 {props.options.map((option, index) => {
-                    return <Option onClick={() => {props.onClick(option.value); setSelectedIndex(index)}} key={index} index={index} visible={isExpanded} selectedIndex={selectedIndex} text={option.text}></Option>
+                    return <Option onClick={() => {props.onClick(option.value); setSelectedIndex(index); setIsExpanded(!isExpanded)}} key={index} index={index} visible={isExpanded} selectedIndex={selectedIndex} text={option.text}></Option>
                 })}
             </div>
         </div>
