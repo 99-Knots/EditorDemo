@@ -15,6 +15,7 @@ import { Ray } from "@babylonjs/core/Culling/ray";
 
 import { SideMenu, MenuOption } from '../ui/sideMenu'
 import { MovingButton, RadialButton, ExpandableRadialButton, AxisMover } from "../ui/multiSwitch";
+import { dialogHandle, CreateDialog } from "../ui/dialogues";
 
 import { GizmoManager, GizmoMode, GizmoSpace } from "./GizmoManager";
 import { Commands, CreateObjectCommand, DeleteObjectCommand } from "../utilities/commands";
@@ -41,6 +42,7 @@ const CanvasRenderer: React.ForwardRefRenderFunction<CanvasHandle, CanvasProps> 
     const engine = React.useRef<Engine>(null);
     const scene = React.useRef<Scene>(null);
     const gizmo = React.useRef<GizmoManager>(null);
+    const createHandle = React.useRef<dialogHandle>();
     
     const [gizmoMode, setGizmoMode] = React.useState(GizmoMode.Translate);
     const [gizmoSpace, setGizmoSpace] = React.useState(GizmoSpace.Local);
@@ -276,6 +278,7 @@ const CanvasRenderer: React.ForwardRefRenderFunction<CanvasHandle, CanvasProps> 
             <canvas className='babylon-canvas' ref={canvas}/>
             <SideMenu buttonSize={5 + (isVertical? 1: 0 *2)}>
                 <MenuOption onClick={()=>{Commands().undo(); setHiddenSelection(true), gizmo.current.removeAllNodes()}} icon="arrow-90deg-left"></MenuOption>
+                <MenuOption id="create-btn" onClick={createHandle.current?.open} icon="plus-lg"/>
                 <MenuOption isSelected={inMultiselect} onClick={()=>{gizmo.current.inMultiSelectMode = !gizmo.current.inMultiSelectMode;}} icon="plus-square-dotted"></MenuOption>
             </SideMenu>
             <MovingButton x={rootPos.x} y={rootPos.y} hidden={hiddenSelection} buttonSize={4}>
@@ -322,6 +325,7 @@ const CanvasRenderer: React.ForwardRefRenderFunction<CanvasHandle, CanvasProps> 
                 <ExpandableRadialButton inactive={gizmoMode!==GizmoMode.Translate} angle={baseAngle + sectionAngle*6} radius={r} onClick={setSnapDist} options={[{text: 'free', value: 0}, {text: '0.1m', value: 0.1}, {text: '0.2m', value: 0.2}, {text: '0.5m', value: 0.5}, {text: '1m', value: 1}, {text: '2m', value: 2}]}/>
                 <ExpandableRadialButton inactive={gizmoMode!==GizmoMode.Rotate} angle={baseAngle + sectionAngle*6} radius={r} onClick={setSnapAngle} options={[{text: 'free', value: 0}, {text: '15°', value: 15}, {text: '30°', value: 30}, {text: '45°', value: 45}, {text: '60°', value: 60}, {text: '90°', value: 90}]}/>
             </MovingButton>
+            <CreateDialog dialogHandle={createHandle} scene={scene.current} linkedBtnId="create-btn"/>
         </div>
     )
 }

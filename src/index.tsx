@@ -8,7 +8,7 @@ function App() {
     const canvasHandle = React.useRef<CanvasHandle>();
     React.useEffect(() => {
         canvasHandle.current.loadScene();
-    }, [])
+    })
     return (
         <Canvas ref={canvasHandle}/>
     )

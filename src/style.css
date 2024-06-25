@@ -102,6 +102,44 @@ html, body {
     transform: translate(-0.5em, -0.5em);
 }
 
+.dialog-backdrop {
+    position: absolute;
+    width: 100vw;
+    height: 100vh;
+    top: 0;
+    left: 0;
+    background-color: #80808080;
+    backdrop-filter: blur(10px);
+    transition: clip-path 1s, visibility 1s;
+}
+
+.dialog {
+    position: relative;
+    box-sizing: border-box;
+    background-color: whitesmoke;
+    top: 0;
+    left: 0;
+    margin: 10vh 10vw;
+    width: 80vw;
+    height: 80vh;
+    border-radius: 2rem;
+    z-index: 10;
+    padding: 2rem;
+    font-size: large;
+}
+
+.close-btn {
+    font-size: 90%;
+    position: absolute;
+    top: 2rem;
+    right: 2rem;
+    background-color: red;
+    color: whitesmoke;
+    width: 2em;
+    height: 2em;
+    border: none;
+}
+
 .round {
     border-radius: 1em;
 }
