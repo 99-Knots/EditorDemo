@@ -3,7 +3,7 @@ import { Engine } from '@babylonjs/core/Engines/engine';
 import { Scene } from '@babylonjs/core/scene';
 import { ArcRotateCamera } from '@babylonjs/core/Cameras/arcRotateCamera';
 import { HemisphericLight } from '@babylonjs/core/Lights/hemisphericLight';
-import { MeshBuilder } from '@babylonjs/core/Meshes/meshBuilder'
+import { MeshBuilder } from '@babylonjs/core/Meshes/meshBuilder';
 import { Vector3, Color3, Vector4 } from '@babylonjs/core/Maths/math';
 import { SkyMaterial } from '@babylonjs/materials/sky';
 import { StandardMaterial } from '@babylonjs/core/Materials/standardMaterial';

@@ -126,6 +126,10 @@ html, body {
     z-index: 10;
     padding: 2rem;
     font-size: large;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-around;
+    align-items: center;
 }
 
 .close-btn {
@@ -138,6 +142,22 @@ html, body {
     width: 2em;
     height: 2em;
     border: none;
+}
+
+.create-btn {
+    all: unset;
+    font-size: 15rem;
+    padding: 0.3em;
+    color: whitesmoke;
+    background-color: dimgray;
+    border-radius: 0.3em;
+    display: flex;
+    align-items: center;
+}
+
+.create-btn:hover {
+    background-color: gray;
+    color: whitesmoke;
 }
 
 .round {

@@ -85,8 +85,9 @@ export class CreateObjectCommand implements Command {
     execute(): void {
         const hit = this.scene.pickWithRay(this.scene.activeCamera.getForwardRay());    //spawn
         this.obj.position = this.obj.position.add(hit.pickedPoint);
-        if (this.obj.getHierarchyBoundingVectors(true).min.y < 0) {
-            this.obj.position = this.obj.position.add(new Vector3(0, -this.obj.getHierarchyBoundingVectors(true).min.y, 0));
+        const yOffset = this.obj.position.y-this.obj.getHierarchyBoundingVectors(true).min.y;
+        if (Math.abs(yOffset) > 0) {
+            this.obj.position = this.obj.position.add(new Vector3(0, yOffset, 0));
         }
     }
 
