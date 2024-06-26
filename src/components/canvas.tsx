@@ -56,6 +56,8 @@ const CanvasRenderer: React.ForwardRefRenderFunction<CanvasHandle, CanvasProps> 
     const [axesAngles, setAxesAngles] = React.useState(Vector3.ZeroReadOnly);
     const [isVertical, setIsVertical] = React.useState(window.innerHeight > window.innerWidth);
     const [inMultiselect, setInMultiselect] = React.useState(false);
+    const [emptyCmdStack, setEmptyCmdStack] = React.useState(true);
+    const [emptyRedoStack, setEmptyRedoStack] = React.useState(true);
 
     let isMoving = false;
     let wasMoving = false;
@@ -95,6 +97,10 @@ const CanvasRenderer: React.ForwardRefRenderFunction<CanvasHandle, CanvasProps> 
             setAxesAngles(gizmo.current.getAxesScreenAngles());
         }
     }, [gizmoSpace]);
+
+    React.useEffect(() => {
+        updateCommandStackVal();
+    })
 
     const setupCamera = async () => {
 		const arcRotCamera = new ArcRotateCamera(
@@ -227,6 +233,11 @@ const CanvasRenderer: React.ForwardRefRenderFunction<CanvasHandle, CanvasProps> 
         setHiddenSelection(true);
     }
 
+    const updateCommandStackVal = () => {
+        setEmptyCmdStack(Commands().isEmpty());
+        setEmptyRedoStack(Commands().isRedoEmpty());
+    }
+
     const runLoop = async () => {
         engine.current.runRenderLoop(() => {
             scene.current.render();
@@ -277,8 +288,8 @@ const CanvasRenderer: React.ForwardRefRenderFunction<CanvasHandle, CanvasProps> 
         <div className="main"> 
             <canvas className='babylon-canvas' ref={canvas}/>
             <SideMenu buttonSize={5 + (isVertical? 1: 0 *2)}>
-                <MenuOption onClick={()=>{Commands().undo(); setHiddenSelection(true), gizmo.current.removeAllNodes()}} icon="arrow-90deg-left"></MenuOption>
-                <MenuOption onClick={()=>{Commands().redo(); setHiddenSelection(true), gizmo.current.removeAllNodes()}} icon="arrow-90deg-right"></MenuOption>
+                <MenuOption isInactive={emptyCmdStack} onClick={()=>{Commands().undo(); setHiddenSelection(true); gizmo.current.removeAllNodes(); updateCommandStackVal()}} icon="arrow-90deg-left"></MenuOption>
+                <MenuOption isInactive={emptyRedoStack} onClick={()=>{Commands().redo(); setHiddenSelection(true), gizmo.current.removeAllNodes(); updateCommandStackVal()}} icon="arrow-90deg-right"></MenuOption>
                 <MenuOption id="create-btn" onClick={createHandle.current?.open} icon="plus-lg"/>
                 <MenuOption isSelected={inMultiselect} onClick={()=>{gizmo.current.inMultiSelectMode = !gizmo.current.inMultiSelectMode;}} icon="plus-square-dotted"></MenuOption>
             </SideMenu>

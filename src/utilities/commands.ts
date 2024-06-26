@@ -12,21 +12,22 @@ interface Command {
 }
 
 class CommandStack {
-    private undoStack: Command[];
+    private activeStack: Command[];
     private redoStack: Command[];
 
     constructor() {
-        this.undoStack = [];
+        this.activeStack = [];
         this.redoStack = [];
     }
 
     execute(command: Command) {
         command.execute();
-        this.undoStack.push(command);
+        this.activeStack.push(command);
+        this.redoStack.length = 0;
     }
 
     undo() {
-        const command = this.undoStack.pop();
+        const command = this.activeStack.pop();
         if (command) {
             command.undo();
             this.redoStack.push(command);
@@ -37,8 +38,16 @@ class CommandStack {
         const command = this.redoStack.pop();
         if (command) {
             command.execute();
-            this.undoStack.push(command);
+            this.activeStack.push(command);
         }
+    }
+
+    isEmpty() {
+        return !this.activeStack.length;
+    }
+
+    isRedoEmpty() {
+        return !this.redoStack.length;
     }
 }
 

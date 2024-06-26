@@ -93,7 +93,7 @@ html, body {
     height: 2em;
 }
 
-.option:not(.selected):hover {
+.option:not(.selected,.inactive):hover {
     background-color: gray;
     color: whitesmoke;
 }
@@ -178,6 +178,11 @@ html, body {
 .selected {
     background-color: darkgray;
     color: #393939;
+}
+
+.inactive {
+    background-color: #505050;
+    color: gray;
 }
 
 .setting-container {
