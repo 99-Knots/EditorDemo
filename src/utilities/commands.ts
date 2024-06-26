@@ -12,21 +12,32 @@ interface Command {
 }
 
 class CommandStack {
-    private stack: Command[];
+    private undoStack: Command[];
+    private redoStack: Command[];
 
     constructor() {
-        this.stack = [];
+        this.undoStack = [];
+        this.redoStack = [];
     }
 
     execute(command: Command) {
         command.execute();
-        this.stack.push(command);
+        this.undoStack.push(command);
     }
 
     undo() {
-        const command = this.stack.pop();
+        const command = this.undoStack.pop();
         if (command) {
             command.undo();
+            this.redoStack.push(command);
+        }
+    }
+
+    redo() {
+        const command = this.redoStack.pop();
+        if (command) {
+            command.execute();
+            this.undoStack.push(command);
         }
     }
 }

@@ -278,6 +278,7 @@ const CanvasRenderer: React.ForwardRefRenderFunction<CanvasHandle, CanvasProps> 
             <canvas className='babylon-canvas' ref={canvas}/>
             <SideMenu buttonSize={5 + (isVertical? 1: 0 *2)}>
                 <MenuOption onClick={()=>{Commands().undo(); setHiddenSelection(true), gizmo.current.removeAllNodes()}} icon="arrow-90deg-left"></MenuOption>
+                <MenuOption onClick={()=>{Commands().redo(); setHiddenSelection(true), gizmo.current.removeAllNodes()}} icon="arrow-90deg-right"></MenuOption>
                 <MenuOption id="create-btn" onClick={createHandle.current?.open} icon="plus-lg"/>
                 <MenuOption isSelected={inMultiselect} onClick={()=>{gizmo.current.inMultiSelectMode = !gizmo.current.inMultiSelectMode;}} icon="plus-square-dotted"></MenuOption>
             </SideMenu>
