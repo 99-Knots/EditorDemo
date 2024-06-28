@@ -96,6 +96,128 @@ export const RadialButton = (props: IRadialButton) => {
     )
 }
 
+
+export const Label = (props: {
+    text?: string,
+    icon?: string,
+    rotation?: number,
+    isHighlighted?: boolean,
+    children?: React.ReactNode,
+}) => {
+    return (
+        <span 
+            className={"icon align " + (props.isHighlighted? " selected" : "")}
+            style={{ transform: 'rotate(' + props.rotation + 'deg)' }}
+        >
+            {props.icon? <i className={`bi bi-${props.icon}`}/> : <></>}
+            {props.text}
+            {props.children}
+        </span>
+    )
+}
+
+export const Icon = (props:{
+    bootstrap?: string,
+    angle?: number,
+    children: React.ReactElement<SVGElement>
+}) => {
+    return (
+        <span 
+            className={"icon align" + (props.bootstrap? ` bi bi- ${props.bootstrap}` : "")}
+            style={{transform: `rotate(${props.angle}deg)`}}
+        >
+            {props.children}
+        </span>
+    )
+}
+
+interface IButton {
+    onClick: (v: any)=>void,
+    index?: number,
+    selectedIndex?: number,
+    isInactive?: boolean,
+    isHidden?: boolean,
+    children?: React.ReactNode,
+}
+
+export const Button = (props: IButton) => {
+    
+    const buttonSize = React.useContext(gizmoGuiContext);
+    const [isSelected, setIsSelected] = React.useState(props.index==props.selectedIndex);
+
+    React.useEffect(() => {
+        setIsSelected(props.index===props.selectedIndex);
+    }, [props.selectedIndex, props.index])
+
+    return (
+        <>
+            <button 
+                className={"gui-button align outline" 
+                    + ((props.isHidden&&!isSelected)? " width-hidden" : "") 
+                    + (props.isInactive? " inactive" : "") 
+                    + (isSelected? " selected" : "")}
+                onClick={props.onClick}
+                style={{minHeight: `${buttonSize}rem`, minWidth: (!props.isHidden||isSelected)? `${buttonSize}rem` : '0rem'}}
+            >
+                <Icon><AxisMover/></Icon>
+            </button>
+            <div className="tooltip" style={{left: `${buttonSize*0.2}rem`}}>Test tooltip</div>
+        </>
+    )
+}
+
+export const ButtonContainer = (props: {
+    children: React.ReactElement<IButton>[],
+}) => {
+    
+    const [isExpanded, setIsExpanded] = React.useState(false);
+    const [selectedIndex, setSelectedIndex] = React.useState(0);
+    
+    return (
+        <div 
+            className="button-container round outline"
+            onPointerEnter={() => {setIsExpanded(true)}}
+            onPointerLeave={() => {setIsExpanded(false)}}
+        >
+            {props.children.map((child, index) => {
+                return React.cloneElement(
+                    child, {
+                        key: index, 
+                        index: index,
+                        selectedIndex: selectedIndex,
+                        isHidden: !isExpanded,
+                        onClick: () => {child.props.onClick(0); setSelectedIndex(index); setIsExpanded(false)}
+                    }, 
+                    child.props.children
+                );
+            })}
+        </div>
+    )
+}
+
+export const RadButton = (props: {angle: number, radius: number, children?: React.ReactNode}) => {
+
+    let x = Math.sin(Math.PI/180 * props.angle)*props.radius;
+    let y = Math.cos(Math.PI/180 * props.angle)*props.radius;
+
+    return (
+        <div 
+            className={"gui-element align centered"}
+            style={{
+                position: "absolute",
+                top: `${-y}rem`, 
+                left: `${x}rem`,
+            }} 
+        >
+            <ButtonContainer>
+                <Button onClick={()=>{}}/>
+                <Button onClick={()=>{console.log('clack')}}/>
+                <Button onClick={()=>{}}/>
+            </ButtonContainer>
+        </div>
+    )
+}
+
 export const AxisMover = (props:{dashed?: boolean, color?: string}) => {
     return (
         <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 16 16">

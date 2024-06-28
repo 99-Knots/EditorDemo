@@ -1,5 +1,5 @@
 :root {
-    font-size: clamp(1px, 1vh, 16px);
+    font-size: clamp(5px, 1vh, 16px);
 }
 
 html, body {
@@ -69,10 +69,72 @@ html, body {
     pointer-events: none;
 }
 
-.icon {
+/*.icon {
     margin-right: 0.1px;
     font-size: 66%;
     transition: font-size 1s, padding 1s;
+}*/
+
+.gui-button {
+    all: unset;
+    background-color: dimgray;
+    color: whitesmoke;
+    overflow: hidden;
+    max-width: 20rem;
+    transition: min-width 1s, max-width 1s, font-size 1s, outline-width 1s;
+}
+
+.gui-button:not(.selected):hover {
+    background-color: gray;
+    color: whitesmoke;;
+}
+
+.button-container {
+    overflow: hidden;
+    display: flex;
+}
+
+.icon {
+    position: relative;
+    margin-right: 0.1px;
+    font-size: 66%;
+    flex-shrink: 0;
+    height: 100%;
+    transition: font-size 1s, padding 1s;
+}
+
+.tooltip {
+    font-size: 40%;
+    position: absolute;
+    top: 120%;
+    left: 20%;
+    background-color: #393939;
+    z-index: 100;
+    padding: 0.3em;
+    border-radius: 0.3em;
+    display: none
+}
+
+.tooltip::after {
+    content: "";
+    position: absolute;
+    top: -0.9em;
+    left: 0.8em;
+    width: max-content;
+    margin-left: -0.5em;
+    border-width: 0.5em;
+    border-style: solid;
+    border-color: transparent transparent #393939 transparent;
+}
+
+.gui-element{
+    pointer-events: all;
+}
+.gui-element:hover {
+    z-index: 10;
+}
+.gui-element:hover .tooltip {
+    display: block;
 }
 
 .align {

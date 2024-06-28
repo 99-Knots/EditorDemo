@@ -110,7 +110,7 @@ export class GizmoManager {
         this.rotationGizmo.scaleRatio = scale ?? 1;
         this.initRotationGizmo();
 
-        this.boundingBoxGizmo = new CustomBoundingBoxGizmo(setDragging, Color3.Gray(), this.layer, this);
+        this.boundingBoxGizmo = new CustomBoundingBoxGizmo(setDragging, Color3.Gray(), this.layer, this, thickness);
         this.boundingBoxGizmo.attachedNode = this.root;
 
         this.changeMode(GizmoMode.Translate);
@@ -557,7 +557,7 @@ class CustomBoundingBoxGizmo extends BoundingBoxGizmo {
         this.gizmoManager = gizmoManager;
         this._scaleFromCenter = true;
         this._scaleDragSpeed *= 2;
-        this.scaleBoxSize = 0.1 * thickness/3;
+        this.scaleBoxSize = 0.1 * (thickness??3)/3;
 
         // 'disable' rotation spheres by removing them from scene, since this is a scale-only gizmo!
         this._rootMesh.removeChild(this._rotateSpheresParent);
