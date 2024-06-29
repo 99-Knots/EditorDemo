@@ -99,18 +99,18 @@ export const RadialButton = (props: IRadialButton) => {
 
 export const Label = (props: {
     text?: string,
-    icon?: string,
     rotation?: number,
-    isHighlighted?: boolean,
     children?: React.ReactNode,
 }) => {
+    
+    const buttonSize = React.useContext(gizmoGuiContext);
     return (
         <span 
-            className={"icon align " + (props.isHighlighted? " selected" : "")}
-            style={{ transform: 'rotate(' + props.rotation + 'deg)' }}
+            className={"label align"}
+            style={{ transform: 'rotate(' + props.rotation + 'deg)' ,
+                minWidth: `${buttonSize}rem`,
+                minHeight: `${buttonSize}rem`}}
         >
-            {props.icon? <i className={`bi bi-${props.icon}`}/> : <></>}
-            {props.text}
             {props.children}
         </span>
     )
@@ -119,12 +119,17 @@ export const Label = (props: {
 export const Icon = (props:{
     bootstrap?: string,
     angle?: number,
-    children: React.ReactElement<SVGElement>
+    children?: React.ReactElement<SVGElement>
 }) => {
+    
+    const buttonSize = React.useContext(gizmoGuiContext);
     return (
         <span 
             className={"icon align" + (props.bootstrap? ` bi bi- ${props.bootstrap}` : "")}
-            style={{transform: `rotate(${props.angle}deg)`}}
+            style={{
+                transform: `rotate(${props.angle}deg)`, 
+                minWidth: `${buttonSize}rem`,
+                minHeight: `${buttonSize}rem`}}
         >
             {props.children}
         </span>
@@ -157,9 +162,9 @@ export const Button = (props: IButton) => {
                     + (props.isInactive? " inactive" : "") 
                     + (isSelected? " selected" : "")}
                 onClick={props.onClick}
-                style={{minHeight: `${buttonSize}rem`, minWidth: (!props.isHidden||isSelected)? `${buttonSize}rem` : '0rem'}}
+                style={{height: `${buttonSize}rem`, maxWidth: (props.isHidden&&isSelected)? `${buttonSize}rem`: ""}}
             >
-                <Icon><AxisMover/></Icon>
+                {props.children}
             </button>
             <div className="tooltip" style={{left: `${buttonSize*0.2}rem`}}>Test tooltip</div>
         </>
@@ -174,6 +179,7 @@ export const ButtonContainer = (props: {
     const [selectedIndex, setSelectedIndex] = React.useState(0);
     
     return (
+        <>
         <div 
             className="button-container round outline"
             onPointerEnter={() => {setIsExpanded(true)}}
@@ -192,6 +198,8 @@ export const ButtonContainer = (props: {
                 );
             })}
         </div>
+        <div className="tooltip">Test tooltip</div>
+        </>
     )
 }
 
@@ -210,9 +218,9 @@ export const RadButton = (props: {angle: number, radius: number, children?: Reac
             }} 
         >
             <ButtonContainer>
-                <Button onClick={()=>{}}/>
-                <Button onClick={()=>{console.log('clack')}}/>
-                <Button onClick={()=>{}}/>
+                <Button onClick={()=>{}}><Label>AAAbbb</Label></Button>
+                <Button onClick={()=>{console.log('clack')}}><Icon><AxisMover/></Icon></Button>
+                <Button onClick={()=>{}}><Icon><AxisMover/></Icon></Button>
             </ButtonContainer>
         </div>
     )

@@ -75,13 +75,31 @@ html, body {
     transition: font-size 1s, padding 1s;
 }*/
 
+.button-container {
+    overflow: hidden;
+    display: flex;
+}
+
 .gui-button {
     all: unset;
+}
+
+
+.align {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+
+.gui-button {
     background-color: dimgray;
+    justify-content: start;
     color: whitesmoke;
     overflow: hidden;
+    min-width: 0;
     max-width: 20rem;
-    transition: min-width 1s, max-width 1s, font-size 1s, outline-width 1s;
+    transition: max-width 1s, font-size 1s, outline-width 1s;
 }
 
 .gui-button:not(.selected):hover {
@@ -89,9 +107,9 @@ html, body {
     color: whitesmoke;;
 }
 
-.button-container {
-    overflow: hidden;
-    display: flex;
+.label {
+    font-size: 30%;
+    padding: 0.3em;
 }
 
 .icon {
@@ -112,7 +130,7 @@ html, body {
     z-index: 100;
     padding: 0.3em;
     border-radius: 0.3em;
-    display: none
+    display: none;
 }
 
 .tooltip::after {
@@ -129,18 +147,15 @@ html, body {
 
 .gui-element{
     pointer-events: all;
+    z-index: 0;
+    transition: z-index 0.2s 1s;
 }
 .gui-element:hover {
     z-index: 10;
+    transition: z-index 0s;
 }
-.gui-element:hover .tooltip {
+.gui-element:hover>.tooltip {
     display: block;
-}
-
-.align {
-    display: flex;
-    align-items: center;
-    justify-content: center;
 }
 
 .settings-array {
