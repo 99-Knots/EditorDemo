@@ -1,4 +1,5 @@
 import React from "react";
+import ReactDOM from "react-dom";
 
 const gizmoGuiContext = React.createContext(15);
 
@@ -100,13 +101,14 @@ export const RadialButton = (props: IRadialButton) => {
 export const Label = (props: {
     text?: string,
     rotation?: number,
-    children?: React.ReactNode,
+    isHidden?: boolean,
+    children?: String,
 }) => {
     
     const buttonSize = React.useContext(gizmoGuiContext);
     return (
         <span 
-            className={"label align"}
+            className={"label align" + (props.isHidden? " small-font" : "")}
             style={{ transform: 'rotate(' + props.rotation + 'deg)' ,
                 minWidth: `${buttonSize}rem`,
                 minHeight: `${buttonSize}rem`}}
@@ -136,13 +138,18 @@ export const Icon = (props:{
     )
 }
 
+export const Tooltip = () => {
+    
+    return (<div className="tooltip">Test tooltipi</div>)
+}
+
 interface IButton {
     onClick: (v: any)=>void,
     index?: number,
     selectedIndex?: number,
     isInactive?: boolean,
     isHidden?: boolean,
-    children?: React.ReactNode,
+    children?: React.ReactElement[],
 }
 
 export const Button = (props: IButton) => {
@@ -164,15 +171,24 @@ export const Button = (props: IButton) => {
                 onClick={props.onClick}
                 style={{height: `${buttonSize}rem`, maxWidth: (props.isHidden&&isSelected)? `${buttonSize}rem`: ""}}
             >
-                {props.children}
+                {props.children.map((child, index) => {
+                    return React.cloneElement(
+                        child, {
+                            key: index, 
+                            index: index,
+                            isHidden: props.isHidden
+                        }, 
+                        child.props.children
+                    );
+                })}
+                <Tooltip/>
             </button>
-            <div className="tooltip" style={{left: `${buttonSize*0.2}rem`}}>Test tooltip</div>
         </>
     )
 }
 
 export const ButtonContainer = (props: {
-    children: React.ReactElement<IButton>[],
+    children: React.ReactElement[],
 }) => {
     
     const [isExpanded, setIsExpanded] = React.useState(false);
@@ -198,7 +214,7 @@ export const ButtonContainer = (props: {
                 );
             })}
         </div>
-        <div className="tooltip">Test tooltip</div>
+        {/*<div className="tooltip">Test tooltip</div>*/}
         </>
     )
 }
@@ -207,6 +223,7 @@ export const RadButton = (props: {angle: number, radius: number, children?: Reac
 
     let x = Math.sin(Math.PI/180 * props.angle)*props.radius;
     let y = Math.cos(Math.PI/180 * props.angle)*props.radius;
+    if (props.children)
 
     return (
         <div 
@@ -218,9 +235,9 @@ export const RadButton = (props: {angle: number, radius: number, children?: Reac
             }} 
         >
             <ButtonContainer>
-                <Button onClick={()=>{}}><Label>AAAbbb</Label></Button>
-                <Button onClick={()=>{console.log('clack')}}><Icon><AxisMover/></Icon></Button>
-                <Button onClick={()=>{}}><Icon><AxisMover/></Icon></Button>
+                {React.Children.toArray(props.children).map((child: React.ReactElement, index)=>{
+                    return child;
+                })}
             </ButtonContainer>
         </div>
     )
@@ -234,7 +251,7 @@ export const AxisMover = (props:{dashed?: boolean, color?: string}) => {
                 <path d="M5,7 l3,-3 m3,3 l-3,-3"/>
                 <path d="M1.5,2 h13"/>
             </g>
-            <g strokeDasharray={props.dashed? "1, 2": ""} strokeLinejoin="round" strokeLinecap="round" strokeWidth="1" stroke={props.color} fillRule="evenodd" >
+            <g strokeDasharray={props.dashed? "1, 2": ""} strokeLinejoin="round" strokeLinecap="round" strokeWidth="1" stroke={props.color??"currentColor"} fillRule="evenodd" >
                 <path  d="M8,14 v-10"/>
                 <path d="M5,7 l3,-3 m3,3 l-3,-3"/>
                 <path d="M1.5,2 h13"/>

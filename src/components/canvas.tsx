@@ -14,7 +14,7 @@ import { KeyboardEventTypes } from "@babylonjs/core/Events/keyboardEvents";
 import { Ray } from "@babylonjs/core/Culling/ray";
 
 import { SideMenu, MenuOption } from '../ui/sideMenu'
-import { MovingButton, RadialButton, ExpandableRadialButton, AxisMover, RadButton } from "../ui/multiSwitch";
+import { MovingButton, RadialButton, ExpandableRadialButton, AxisMover, RadButton, ButtonContainer, Button, Label, Icon } from "../ui/multiSwitch";
 import { dialogHandle, CreateDialog } from "../ui/dialogues";
 
 import { GizmoManager, GizmoMode, GizmoSpace } from "./GizmoManager";
@@ -319,7 +319,12 @@ const CanvasRenderer: React.ForwardRefRenderFunction<CanvasHandle, CanvasProps> 
                     <></>
                  }
 
-                <RadButton angle={baseAngle + sectionAngle} radius={r}></RadButton>
+                <RadButton angle={baseAngle + sectionAngle} radius={r}>
+                        <Button onClick={()=>{}}><Label>AAAbbb</Label><></></Button>
+                        <Button onClick={()=>{console.log('clack')}}><Icon><AxisMover/></Icon><Label>123456789</Label></Button>
+                        <Button onClick={()=>{}}><Icon><AxisMover/></Icon><></></Button>
+                </RadButton>
+                <RadButton angle={baseAngle} radius={r}><Button onClick={()=>{}}><Icon><AxisMover/></Icon><></></Button></RadButton>
                 <RadialButton angle={baseAngle + sectionAngle*2} radius={r} onClick={() => {setGizmoMode(GizmoMode.Translate)}} isSelected={gizmoMode==GizmoMode.Translate} icon="arrows-move"/>
                 <RadialButton angle={baseAngle + sectionAngle*3} radius={r} onClick={() => {setGizmoMode(GizmoMode.Rotate)}} isSelected={gizmoMode==GizmoMode.Rotate} icon="arrow-repeat"/>
                 <RadialButton angle={baseAngle + sectionAngle*4} radius={r} onClick={() => {setGizmoMode(GizmoMode.Scale)}} isSelected={gizmoMode==GizmoMode.Scale} icon="bounding-box-circles"/>

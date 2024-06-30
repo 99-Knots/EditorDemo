@@ -108,8 +108,13 @@ html, body {
 }
 
 .label {
-    font-size: 30%;
+    font-size: 50%;
     padding: 0.3em;
+    transition: font-size 1s, padding 1s;
+}
+
+.small-font {
+    font-size: 30%;
 }
 
 .icon {
@@ -123,14 +128,15 @@ html, body {
 
 .tooltip {
     font-size: 40%;
-    position: absolute;
+    position: fixed;
     top: 120%;
-    left: 20%;
     background-color: #393939;
+    color: whitesmoke;
     z-index: 100;
     padding: 0.3em;
     border-radius: 0.3em;
     display: none;
+    white-space: nowrap;
 }
 
 .tooltip::after {
@@ -154,7 +160,10 @@ html, body {
     z-index: 10;
     transition: z-index 0s;
 }
-.gui-element:hover>.tooltip {
+/*.gui-element:hover>.tooltip {
+    display: block;
+}*/
+:has(>.tooltip):hover>.tooltip {
     display: block;
 }
 
