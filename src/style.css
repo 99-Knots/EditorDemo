@@ -34,18 +34,6 @@ html, body {
     transition: max-width 1s, left 0.2s, top 0.2s;
 }
 
-.gui {
-    overflow: hidden;
-    color: whitesmoke;
-    background-color: dimgray;
-    pointer-events: all;
-}
-
-.gui .icon:not(.selected):hover {
-    background-color: gray;
-    color: whitesmoke;
-}
-
 .side-menu {
     left: 0;
     top: 0;
@@ -70,12 +58,6 @@ html, body {
     pointer-events: none;
 }
 
-/*.icon {
-    margin-right: 0.1px;
-    font-size: 66%;
-    transition: font-size 1s, padding 1s;
-}*/
-
 .button-container {
     align-self: flex-start;
     overflow: hidden;
@@ -86,18 +68,15 @@ html, body {
     all: unset;
 }
 
-
 .align {
     display: flex;
     align-items: center;
     justify-content: center;
 }
 
-
 .gui-button {
     user-select: none;
     background-color: dimgray;
-    /*justify-content: start;*/
     color: whitesmoke;
     overflow: hidden;
     min-width: 0;
@@ -134,7 +113,6 @@ html, body {
     z-index: 100;
     padding: 0.3em;
     border-radius: 0.3em;
-    /*display: none;*/
     pointer-events: none;
     opacity: 0;
     white-space: nowrap;
@@ -157,15 +135,13 @@ html, body {
     z-index: 0;
     transition: z-index 0.2s 0.5s;
 }
+
 .gui-element:hover {
     z-index: 10;
     transition: z-index 0s;
 }
-/*.gui-element:hover>.tooltip {
-    display: block;
-}*/
+
 :has(>.tooltip):active>.tooltip {
-    /*display: block;*/
     opacity: 1;
     transition: opacity 0.1s 1s;
 }
@@ -176,109 +152,22 @@ html, body {
     }
 
     :has(>.tooltip):hover>.tooltip {
-        /*display: block;*/
         opacity: 1;
         transition: opacity 0.2s 0.5s;
     }
 
     .gui-button:not(.selected,.inactive):hover {
         background-color: gray;
-        color: whitesmoke;;
+        color: whitesmoke;
     }
-}
-
-.settings-array {
-    overflow: hidden;
-    display: flex;
-    font-size: 66%;
-    height: 100%;
-}
-
-.option {
-    width: 2em;
-    height: 2em;
-}
-
-.option:not(.selected,.inactive):hover {
-    background-color: gray;
-    color: whitesmoke;
 }
 
 .centered {
     transform: translate(-0.5em, -0.5em);
 }
 
-.dialog-backdrop {
-    position: absolute;
-    width: 100vw;
-    height: 100vh;
-    top: 0;
-    left: 0;
-    background-color: #80808080;
-    backdrop-filter: blur(10px);
-    transition: clip-path 1s, visibility 1s;
-}
-
-.dialog {
-    position: relative;
-    box-sizing: border-box;
-    background-color: whitesmoke;
-    top: 0;
-    left: 0;
-    margin: 10vh 10vw;
-    width: 80vw;
-    height: 80vh;
-    border-radius: 2rem;
-    z-index: 10;
-    padding: 2rem;
-    font-size: large;
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: space-around;
-    align-items: center;
-}
-
-.close-btn {
-    font-size: 90%;
-    position: absolute;
-    top: 2rem;
-    right: 2rem;
-    background-color: red;
-    color: whitesmoke;
-    width: 2em;
-    height: 2em;
-    border: none;
-}
-
-.create-btn {
-    all: unset;
-    font-size: 15rem;
-    padding: 0.3em;
-    color: whitesmoke;
-    background-color: dimgray;
-    border-radius: 0.3em;
-    display: flex;
-    align-items: center;
-}
-
-.create-btn:hover {
-    background-color: gray;
-    color: whitesmoke;
-}
-
 .round {
     border-radius: 1em;
-}
-
-.setting {
-    padding: 0.3em;
-    overflow: hidden;
-    white-space: nowrap;
-}
-
-.setting-container:not(.selected):hover {
-    background-color: gray;
-    color: whitesmoke;
 }
 
 .selected {
@@ -289,12 +178,6 @@ html, body {
 .inactive {
     background-color: #505050;
     color: gray;
-}
-
-.setting-container {
-    overflow: hidden;
-    height: 100%;
-    transition: max-width 1s, font-size 1s, outline-width 1s;
 }
 
 .outline {

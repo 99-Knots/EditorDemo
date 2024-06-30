@@ -14,8 +14,7 @@ import { KeyboardEventTypes } from "@babylonjs/core/Events/keyboardEvents";
 import { Ray } from "@babylonjs/core/Culling/ray";
 
 import { Label, Button, ButtonContainer, RadialButton, Anchor, SideMenu } from "../ui/buttons";
-import { Icon, AxisMover } from "../ui/icons";
-import { dialogHandle, CreateDialog } from "../ui/dialogues";
+import { Icon, AxisMover, SoccerBall } from "../ui/icons";
 
 import { GizmoManager, GizmoMode, GizmoSpace } from "./GizmoManager";
 import { Commands, CreateObjectCommand, DeleteObjectCommand, GroupCommand } from "../utilities/commands";
@@ -42,7 +41,6 @@ const CanvasRenderer: React.ForwardRefRenderFunction<CanvasHandle, CanvasProps> 
     const engine = React.useRef<Engine>(null);
     const scene = React.useRef<Scene>(null);
     const gizmo = React.useRef<GizmoManager>(null);
-    const createHandle = React.useRef<dialogHandle>();
     
     const [gizmoMode, setGizmoMode] = React.useState(GizmoMode.Translate);
     const [gizmoSpace, setGizmoSpace] = React.useState(GizmoSpace.Local);
@@ -225,6 +223,27 @@ const CanvasRenderer: React.ForwardRefRenderFunction<CanvasHandle, CanvasProps> 
         });
     }
 
+    const createNode = (shape: 'cube' | 'sphere' | 'ball' | 'knot' | 'torus') => {
+        let mesh;
+        switch(shape) {
+            case "cube": 
+                mesh = MeshBuilder.CreateBox('cube', {size: 1}, scene.current);
+                break;
+            case "sphere":
+                mesh = MeshBuilder.CreateSphere('sphere', {diameter: 1}, scene.current);
+                break;
+            case "ball":
+                mesh = MeshBuilder.CreateGoldberg('ball', {m: 1, n: 1, size: 0.5}, scene.current);
+                break;
+            case "knot":
+                mesh = MeshBuilder.CreateTorusKnot('knot', {tube: 0.1, radius: 0.3, radialSegments: 64, p:5, q: 1}, scene.current);
+                break;
+            case "torus":
+                mesh = MeshBuilder.CreateTorus('torus', {diameter: 0.8, thickness: 0.2, tessellation: 32}, scene.current)
+        }
+        Commands().execute(new CreateObjectCommand(mesh));
+    }
+
     const deleteNode = () => {
         const clist = [];
         gizmo.current.getNodes().forEach( n => {
@@ -303,57 +322,51 @@ const CanvasRenderer: React.ForwardRefRenderFunction<CanvasHandle, CanvasProps> 
                     <Button onClick={()=>{}}>
                         <Icon bootstrap="plus-lg"/>
                     </Button>
-                    <Button onClick={() => {
-                        const mesh = MeshBuilder.CreateSphere('new_sphere', {diameter: 1}, scene.current);
-                        Commands().execute(new CreateObjectCommand(mesh));
-                    }}><Icon bootstrap="circle"/></Button>
-                    <Button onClick={() =>{
-                        const mesh = MeshBuilder.CreateBox('new_box', {size: 1}, scene.current);
-                        Commands().execute(new CreateObjectCommand(mesh));
-                    }}><Icon bootstrap="square"/></Button>
+                    <Button onClick={() => {createNode('sphere')}}><Icon bootstrap="circle"/></Button>
+                    <Button onClick={() => {createNode('cube')}}><Icon bootstrap="square"/></Button>
+                    <Button onClick={() => {createNode('ball')}}><SoccerBall/></Button>
+                    <Button onClick={() => {createNode('knot')}}><Icon bootstrap="hypnotize"/></Button>
+                    <Button onClick={() => {createNode('torus')}}><Icon bootstrap="stop-circle"/></Button>
                 </ButtonContainer>
                 <ButtonContainer>
                     <Button isSelectedLink={inMultiselect} onClick={()=>{gizmo.current.inMultiSelectMode = !gizmo.current.inMultiSelectMode;}}>
                         <Icon bootstrap="plus-square-dotted"/>
                     </Button>
                 </ButtonContainer>
-                {/*<MenuOption isInactive={emptyCmdStack} onClick={()=>{Commands().undo(); setHiddenSelection(true); gizmo.current.removeAllNodes(); updateCommandStackVal()}} icon="arrow-90deg-left"></MenuOption>
-                <MenuOption isInactive={emptyRedoStack} onClick={()=>{Commands().redo(); setHiddenSelection(true), gizmo.current.removeAllNodes(); updateCommandStackVal()}} icon="arrow-90deg-right"></MenuOption>
-                <MenuOption id="create-btn" onClick={createHandle.current?.open} icon="plus-lg"/>
-                <MenuOption isSelected={inMultiselect} onClick={()=>{gizmo.current.inMultiSelectMode = !gizmo.current.inMultiSelectMode;}} icon="plus-square-dotted"></MenuOption>
-            */}</SideMenu>
+            </SideMenu>
+
             <Anchor x={rootPos.x} y={rootPos.y} hidden={hiddenSelection} buttonSize={4}>
                 {(gizmoMode == GizmoMode.Translate )? 
                     <>
                         <RadialButton angle={axesAngles.z + 180} radius={rInner}>
                             <Button onClick={()=>{gizmo.current.snapAlongAxis('z', true)}}>
-                                <Icon angle={axesAngles.z + 180}><AxisMover color="dodgerblue" dashed={true}></AxisMover></Icon>
+                                <AxisMover angle={axesAngles.z + 180} color="dodgerblue" dashed={true}></AxisMover>
                             </Button>
                         </RadialButton>
                         <RadialButton angle={axesAngles.y + 180} radius={rInner}>
                             <Button onClick={()=>{gizmo.current.snapAlongAxis('y', true)}}>
-                                <Icon angle={axesAngles.y + 180}><AxisMover color="lime" dashed={true}></AxisMover></Icon>
+                                <AxisMover angle={axesAngles.y + 180} color="lime" dashed={true}></AxisMover>
                             </Button>
                         </RadialButton>
                         <RadialButton angle={axesAngles.x + 180} radius={rInner}>
                             <Button onClick={()=>{gizmo.current.snapAlongAxis('x', true)}}>
-                                <Icon angle={axesAngles.x + 180}><AxisMover color="crimson" dashed={true}></AxisMover></Icon>
+                                <AxisMover angle={axesAngles.x + 180} color="crimson" dashed={true}></AxisMover>
                             </Button>
                         </RadialButton>
 
                         <RadialButton angle={axesAngles.z} radius={rInner}>
                             <Button onClick={()=>{gizmo.current.snapAlongAxis('z')}}>
-                                <Icon angle={axesAngles.z}><AxisMover color="dodgerblue"></AxisMover></Icon>
+                                <AxisMover angle={axesAngles.z} color="dodgerblue"></AxisMover>
                             </Button>
                         </RadialButton>
                         <RadialButton angle={axesAngles.y} radius={rInner}>
                             <Button onClick={()=>{gizmo.current.snapAlongAxis('y')}}>
-                                <Icon angle={axesAngles.y}><AxisMover color="lime"></AxisMover></Icon>
+                                <AxisMover angle={axesAngles.y} color="lime"></AxisMover>
                             </Button>
                         </RadialButton>
                         <RadialButton angle={axesAngles.x} radius={rInner}>
                             <Button onClick={()=>{gizmo.current.snapAlongAxis('x')}}>
-                                <Icon angle={axesAngles.x}><AxisMover color="crimson"></AxisMover></Icon>
+                                <AxisMover angle={axesAngles.x} color="crimson"></AxisMover>
                             </Button>
                         </RadialButton>
                     </>
@@ -410,7 +423,6 @@ const CanvasRenderer: React.ForwardRefRenderFunction<CanvasHandle, CanvasProps> 
                     <Button onClick={()=>{deleteNode()}}><Icon bootstrap="trash3"/></Button>
                 </RadialButton>
             </Anchor>
-            <CreateDialog dialogHandle={createHandle} scene={scene.current} linkedBtnId="create-btn"/>
         </div>
     )
 }
