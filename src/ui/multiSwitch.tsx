@@ -1,7 +1,6 @@
 import React from "react";
-import ReactDOM from "react-dom";
 
-const gizmoGuiContext = React.createContext(15);
+export const gizmoGuiContext = React.createContext(15);
 
 export const MovingButton = (props: {
     x: number, 
@@ -102,13 +101,14 @@ export const Label = (props: {
     text?: string,
     rotation?: number,
     isHidden?: boolean,
+    isSelected?: boolean,
     children?: String,
 }) => {
     
     const buttonSize = React.useContext(gizmoGuiContext);
     return (
         <span 
-            className={"label align" + (props.isHidden? " small-font" : "")}
+            className={"label align" + (props.isHidden&&props.isSelected? " small-font" : "")}
             style={{ transform: 'rotate(' + props.rotation + 'deg)' ,
                 minWidth: `${buttonSize}rem`,
                 minHeight: `${buttonSize}rem`}}
@@ -127,7 +127,7 @@ export const Icon = (props:{
     const buttonSize = React.useContext(gizmoGuiContext);
     return (
         <span 
-            className={"icon align" + (props.bootstrap? ` bi bi- ${props.bootstrap}` : "")}
+            className={"icon align" + (props.bootstrap? ` bi bi-${props.bootstrap}` : "")}
             style={{
                 transform: `rotate(${props.angle}deg)`, 
                 minWidth: `${buttonSize}rem`,
@@ -138,57 +138,64 @@ export const Icon = (props:{
     )
 }
 
-export const Tooltip = () => {
+export const Tooltip = (props: {children: String}) => {
     
-    return (<div className="tooltip">Test tooltipi</div>)
+    return (<div className="tooltip">{props.children}</div>)
 }
 
 interface IButton {
     onClick: (v: any)=>void,
     index?: number,
     selectedIndex?: number,
+    selectable?: boolean,
     isInactive?: boolean,
     isHidden?: boolean,
-    children?: React.ReactElement[],
+    isSelectedLink?: boolean,
+    tooltipText?: String,
+    children?: React.ReactNode,
 }
 
 export const Button = (props: IButton) => {
     
     const buttonSize = React.useContext(gizmoGuiContext);
-    const [isSelected, setIsSelected] = React.useState(props.index==props.selectedIndex);
+    const [isSelected, setIsSelected] = React.useState((props.index==props.selectedIndex) || props.isSelectedLink);
 
     React.useEffect(() => {
-        setIsSelected(props.index===props.selectedIndex);
-    }, [props.selectedIndex, props.index])
+        setIsSelected((props.index===props.selectedIndex) || props.isSelectedLink);
+    }, [props.selectedIndex, props.index, props.isSelectedLink])
 
     return (
-        <>
-            <button 
-                className={"gui-button align outline" 
-                    + ((props.isHidden&&!isSelected)? " width-hidden" : "") 
-                    + (props.isInactive? " inactive" : "") 
-                    + (isSelected? " selected" : "")}
-                onClick={props.onClick}
-                style={{height: `${buttonSize}rem`, maxWidth: (props.isHidden&&isSelected)? `${buttonSize}rem`: ""}}
-            >
-                {props.children.map((child, index) => {
-                    return React.cloneElement(
-                        child, {
-                            key: index, 
-                            index: index,
-                            isHidden: props.isHidden
-                        }, 
-                        child.props.children
-                    );
-                })}
-                <Tooltip/>
-            </button>
-        </>
+        <button 
+            className={"gui-button align outline" 
+                + ((props.isHidden&&!isSelected)? " width-hidden" : "") 
+                + (props.isInactive? " inactive" : "") 
+                + (isSelected&&(props.selectable||props.isSelectedLink)? " selected" : "")}
+            onClick={props.onClick}
+            style={{height: `${buttonSize}rem`, maxWidth: (props.isHidden&&isSelected)? `${buttonSize}rem`: ""}}
+        >
+            {React.Children.toArray(props.children).map((child: React.ReactElement, index) => {
+                return React.cloneElement(
+                    child, {
+                        key: index, 
+                        index: index,
+                        isHidden: props.isHidden,
+                        isSelected: isSelected,
+                    }, 
+                    child.props.children
+                );
+            })}
+            { props.tooltipText?
+                <Tooltip>{props.tooltipText}</Tooltip> 
+                :
+                <></>
+            }
+        </button>
     )
 }
 
 export const ButtonContainer = (props: {
-    children: React.ReactElement[],
+    fixedIndex?: number,
+    children: React.ReactNode,
 }) => {
     
     const [isExpanded, setIsExpanded] = React.useState(false);
@@ -198,17 +205,17 @@ export const ButtonContainer = (props: {
         <>
         <div 
             className="button-container round outline"
-            onPointerEnter={() => {setIsExpanded(true)}}
-            onPointerLeave={() => {setIsExpanded(false)}}
+            onMouseEnter={() => {setIsExpanded(true)}} /* use mouseEnter for desktop usage, onClick handles mobile touches*/
+            onMouseLeave={() => {setIsExpanded(false)}}
         >
-            {props.children.map((child, index) => {
+            {React.Children.toArray(props.children).map((child: React.ReactElement, index) => {
                 return React.cloneElement(
                     child, {
                         key: index, 
                         index: index,
-                        selectedIndex: selectedIndex,
+                        selectedIndex: props.fixedIndex??selectedIndex,
                         isHidden: !isExpanded,
-                        onClick: () => {child.props.onClick(0); setSelectedIndex(index); setIsExpanded(false)}
+                        onClick: () => {child.props.onClick(0); setSelectedIndex(index); setIsExpanded(!isExpanded)}
                     }, 
                     child.props.children
                 );
@@ -219,7 +226,7 @@ export const ButtonContainer = (props: {
     )
 }
 
-export const RadButton = (props: {angle: number, radius: number, children?: React.ReactNode}) => {
+export const RadButton = (props: {angle: number, radius: number, invisible?: boolean, children?: React.ReactNode}) => {
 
     let x = Math.sin(Math.PI/180 * props.angle)*props.radius;
     let y = Math.cos(Math.PI/180 * props.angle)*props.radius;
@@ -232,6 +239,7 @@ export const RadButton = (props: {angle: number, radius: number, children?: Reac
                 position: "absolute",
                 top: `${-y}rem`, 
                 left: `${x}rem`,
+                display: props.invisible? "none" : "",
             }} 
         >
             <ButtonContainer>

@@ -1,4 +1,5 @@
 import React from "react";
+import { gizmoGuiContext } from "./multiSwitch";
 
 export const SideMenu = ( props: {
     buttonSize: number,
@@ -6,7 +7,9 @@ export const SideMenu = ( props: {
 }) => {
     return(
         <div className="side-menu" style={{fontSize: `${props.buttonSize*0.66}rem`}}>
-            {props.children}
+            <gizmoGuiContext.Provider value={props.buttonSize}>
+                {props.children}
+            </gizmoGuiContext.Provider>
         </div>
     )
 }

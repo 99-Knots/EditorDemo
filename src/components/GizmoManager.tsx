@@ -1,7 +1,7 @@
 import { TransformNode } from "@babylonjs/core/Meshes/transformNode";
 import { AbstractMesh } from "@babylonjs/core/Meshes/abstractMesh";
 import { Mesh } from "@babylonjs/core/Meshes/mesh";
-import { Vector3, Quaternion, Color3, Matrix } from "@babylonjs/core/Maths/math";
+import { Vector3, Quaternion, Color3, Matrix, Vector4 } from "@babylonjs/core/Maths/math";
 import { Ray } from '@babylonjs/core/Culling/ray'
 import { RayHelper } from "@babylonjs/core";
 import { MeshBuilder } from '@babylonjs/core/Meshes/meshBuilder'
@@ -48,7 +48,7 @@ const toTranslationMatrix = (v: Vector3) => {
 
 const projectToScreen = (p: Vector3, scene: Scene) => {
     
-    const engine = scene.getEngine()
+    const engine = scene.getEngine();
     const camera = scene.activeCamera;
     return Vector3.Project(p, Matrix.Identity(), scene.getTransformMatrix(), camera.viewport.toGlobal(engine.getRenderWidth(), engine.getRenderHeight()))
 }
@@ -59,7 +59,7 @@ export class GizmoManager {
     private root: TransformNode;                            // actual attached node of the gizmo; serves to transfer changes to the meshes
     private initialTransform: Transformation;               // transformation of the root before an axis gets dragged; to calculate the difference between start and end of drag
     private inWorldSpace: boolean;                          // indicates if the gizmo is currently using world orientation
-    private nodes: [TransformNode, TransformOrient][];               // list of meshes and their transformatin currently attached to the gizmo
+    private nodes: [TransformNode, TransformOrient][];      // list of meshes and their transformatin currently attached to the gizmo
     private positionGizmo: PositionGizmo;                   // gizmo for translation
     private rotationGizmo: RotationGizmo;                   // gizmo for rotation
     private boundingBoxGizmo: CustomBoundingBoxGizmo;       // gizmo for scaling

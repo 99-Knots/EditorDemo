@@ -76,6 +76,7 @@ html, body {
 }*/
 
 .button-container {
+    align-self: flex-start;
     overflow: hidden;
     display: flex;
 }
@@ -93,18 +94,14 @@ html, body {
 
 
 .gui-button {
+    user-select: none;
     background-color: dimgray;
-    justify-content: start;
+    /*justify-content: start;*/
     color: whitesmoke;
     overflow: hidden;
     min-width: 0;
-    max-width: 20rem;
+    max-width: 10rem;
     transition: max-width 1s, font-size 1s, outline-width 1s;
-}
-
-.gui-button:not(.selected):hover {
-    background-color: gray;
-    color: whitesmoke;;
 }
 
 .label {
@@ -114,7 +111,7 @@ html, body {
 }
 
 .small-font {
-    font-size: 30%;
+    font-size: 40%;
 }
 
 .icon {
@@ -129,14 +126,18 @@ html, body {
 .tooltip {
     font-size: 40%;
     position: fixed;
-    top: 120%;
+    margin-bottom: -5em;
+    left: 0;
     background-color: #393939;
     color: whitesmoke;
     z-index: 100;
     padding: 0.3em;
     border-radius: 0.3em;
-    display: none;
+    /*display: none;*/
+    pointer-events: none;
+    opacity: 0;
     white-space: nowrap;
+    transition: opacity 0.2s 0s;
 }
 
 .tooltip::after {
@@ -145,7 +146,6 @@ html, body {
     top: -0.9em;
     left: 0.8em;
     width: max-content;
-    margin-left: -0.5em;
     border-width: 0.5em;
     border-style: solid;
     border-color: transparent transparent #393939 transparent;
@@ -154,7 +154,7 @@ html, body {
 .gui-element{
     pointer-events: all;
     z-index: 0;
-    transition: z-index 0.2s 1s;
+    transition: z-index 0.2s 0.5s;
 }
 .gui-element:hover {
     z-index: 10;
@@ -163,8 +163,27 @@ html, body {
 /*.gui-element:hover>.tooltip {
     display: block;
 }*/
-:has(>.tooltip):hover>.tooltip {
-    display: block;
+:has(>.tooltip):active>.tooltip {
+    /*display: block;*/
+    opacity: 1;
+    transition: opacity 0.1s 1s;
+}
+
+@media (hover: hover) {
+    .tooltip {
+        transition: opacity 0s 0s;
+    }
+
+    :has(>.tooltip):hover>.tooltip {
+        /*display: block;*/
+        opacity: 1;
+        transition: opacity 0.2s 0.5s;
+    }
+
+    .gui-button:not(.selected,.inactive):hover {
+        background-color: gray;
+        color: whitesmoke;;
+    }
 }
 
 .settings-array {

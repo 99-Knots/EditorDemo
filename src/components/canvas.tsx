@@ -18,7 +18,7 @@ import { MovingButton, RadialButton, ExpandableRadialButton, AxisMover, RadButto
 import { dialogHandle, CreateDialog } from "../ui/dialogues";
 
 import { GizmoManager, GizmoMode, GizmoSpace } from "./GizmoManager";
-import { Commands, CreateObjectCommand, DeleteObjectCommand } from "../utilities/commands";
+import { Commands, CreateObjectCommand, DeleteObjectCommand, GroupCommand } from "../utilities/commands";
 
 import floor_tex from '../../assets/floortiles.png';
 import floor_norm from '../../assets/floortiles_normal.png';
@@ -226,9 +226,13 @@ const CanvasRenderer: React.ForwardRefRenderFunction<CanvasHandle, CanvasProps> 
     }
 
     const deleteNode = () => {
+        const clist = [];
         gizmo.current.getNodes().forEach( n => {
-            Commands().execute(new DeleteObjectCommand(n[0]));
+            clist.push(new DeleteObjectCommand(n[0]));
         });
+        if (clist.length > 0) {
+            Commands().execute(new GroupCommand(clist))
+        }
         gizmo.current.removeAllNodes();
         setHiddenSelection(true);
     }
@@ -258,6 +262,7 @@ const CanvasRenderer: React.ForwardRefRenderFunction<CanvasHandle, CanvasProps> 
         window.addEventListener("resize", () => {
             engine.current.resize();
             if (gizmo.current){
+                scene.current.updateTransformMatrix(true);
                 setRootPos(gizmo.current.getRootScreenPosition());
                 setIsVertical(window.innerHeight> window.innerWidth);
             }
@@ -288,60 +293,122 @@ const CanvasRenderer: React.ForwardRefRenderFunction<CanvasHandle, CanvasProps> 
         <div className="main"> 
             <canvas className='babylon-canvas' ref={canvas}/>
             <SideMenu buttonSize={5 + (isVertical? 1: 0 *2)}>
-                <MenuOption isInactive={emptyCmdStack} onClick={()=>{Commands().undo(); setHiddenSelection(true); gizmo.current.removeAllNodes(); updateCommandStackVal()}} icon="arrow-90deg-left"></MenuOption>
+                <ButtonContainer>
+                    <Button isInactive={emptyCmdStack} onClick={()=>{Commands().undo(); setHiddenSelection(true); gizmo.current.removeAllNodes(); updateCommandStackVal()}}><Icon bootstrap="arrow-90deg-left"/></Button>
+                </ButtonContainer>
+                <ButtonContainer>
+                    <Button isInactive={emptyRedoStack} onClick={()=>{Commands().redo(); setHiddenSelection(true); gizmo.current.removeAllNodes(); updateCommandStackVal()}}><Icon bootstrap="arrow-90deg-right"/></Button>
+                </ButtonContainer>
+                <ButtonContainer fixedIndex={0}>
+                    <Button onClick={()=>{}}>
+                        <Icon bootstrap="plus-lg"/>
+                    </Button>
+                    <Button onClick={() => {
+                        const mesh = MeshBuilder.CreateSphere('new_sphere', {diameter: 1}, scene.current);
+                        Commands().execute(new CreateObjectCommand(mesh));
+                    }}><Icon bootstrap="circle"/></Button>
+                    <Button onClick={() =>{
+                        const mesh = MeshBuilder.CreateBox('new_box', {size: 1}, scene.current);
+                        Commands().execute(new CreateObjectCommand(mesh));
+                    }}><Icon bootstrap="square"/></Button>
+                </ButtonContainer>
+                <ButtonContainer>
+                    <Button isSelectedLink={inMultiselect} onClick={()=>{gizmo.current.inMultiSelectMode = !gizmo.current.inMultiSelectMode;}}>
+                        <Icon bootstrap="plus-square-dotted"/>
+                    </Button>
+                </ButtonContainer>
+                {/*<MenuOption isInactive={emptyCmdStack} onClick={()=>{Commands().undo(); setHiddenSelection(true); gizmo.current.removeAllNodes(); updateCommandStackVal()}} icon="arrow-90deg-left"></MenuOption>
                 <MenuOption isInactive={emptyRedoStack} onClick={()=>{Commands().redo(); setHiddenSelection(true), gizmo.current.removeAllNodes(); updateCommandStackVal()}} icon="arrow-90deg-right"></MenuOption>
                 <MenuOption id="create-btn" onClick={createHandle.current?.open} icon="plus-lg"/>
                 <MenuOption isSelected={inMultiselect} onClick={()=>{gizmo.current.inMultiSelectMode = !gizmo.current.inMultiSelectMode;}} icon="plus-square-dotted"></MenuOption>
-            </SideMenu>
+            */}</SideMenu>
             <MovingButton x={rootPos.x} y={rootPos.y} hidden={hiddenSelection} buttonSize={4}>
                 {(gizmoMode == GizmoMode.Translate )? 
                     <>
-                        <RadialButton angle={axesAngles.z + 180} radius={rInner} rotation={axesAngles.z + 180} onClick={()=>{gizmo.current.snapAlongAxis('z', true)}}>
-                            <AxisMover color={'dodgerblue'} dashed={true}/>
-                        </RadialButton>
-                        <RadialButton angle={axesAngles.y +180} radius={rInner} rotation={axesAngles.y + 180} onClick={()=>{gizmo.current.snapAlongAxis('y', true)}}>
-                            <AxisMover color={'lime'} dashed={true}/>
-                        </RadialButton>
-                        <RadialButton angle={axesAngles.x + 180} radius={rInner} rotation={axesAngles.x + 180} onClick={()=>{gizmo.current.snapAlongAxis('x', true)}}>
-                            <AxisMover color={'crimson'} dashed={true}/>
-                        </RadialButton>
-                        <RadialButton angle={axesAngles.z} radius={rInner} rotation={axesAngles.z} onClick={()=>{gizmo.current.snapAlongAxis('z')}}>
-                            <AxisMover color={'dodgerblue'}/>
-                        </RadialButton>
-                        <RadialButton angle={axesAngles.y} radius={rInner} rotation={axesAngles.y} onClick={()=>{gizmo.current.snapAlongAxis('y')}}>
-                            <AxisMover color={'lime'}/>
-                        </RadialButton>
-                        <RadialButton angle={axesAngles.x} radius={rInner} rotation={axesAngles.x} onClick={()=>{gizmo.current.snapAlongAxis('x')}}>
-                            <AxisMover color={'crimson'}/>
-                        </RadialButton>
+                        <RadButton angle={axesAngles.z + 180} radius={rInner}>
+                            <Button onClick={()=>{gizmo.current.snapAlongAxis('z', true)}}>
+                                <Icon angle={axesAngles.z + 180}><AxisMover color="dodgerblue" dashed={true}></AxisMover></Icon>
+                            </Button>
+                        </RadButton>
+                        <RadButton angle={axesAngles.y + 180} radius={rInner}>
+                            <Button onClick={()=>{gizmo.current.snapAlongAxis('y', true)}}>
+                                <Icon angle={axesAngles.y + 180}><AxisMover color="lime" dashed={true}></AxisMover></Icon>
+                            </Button>
+                        </RadButton>
+                        <RadButton angle={axesAngles.x + 180} radius={rInner}>
+                            <Button onClick={()=>{gizmo.current.snapAlongAxis('x', true)}}>
+                                <Icon angle={axesAngles.x + 180}><AxisMover color="crimson" dashed={true}></AxisMover></Icon>
+                            </Button>
+                        </RadButton>
+
+                        <RadButton angle={axesAngles.z} radius={rInner}>
+                            <Button onClick={()=>{gizmo.current.snapAlongAxis('z')}}>
+                                <Icon angle={axesAngles.z}><AxisMover color="dodgerblue"></AxisMover></Icon>
+                            </Button>
+                        </RadButton>
+                        <RadButton angle={axesAngles.y} radius={rInner}>
+                            <Button onClick={()=>{gizmo.current.snapAlongAxis('y')}}>
+                                <Icon angle={axesAngles.y}><AxisMover color="lime"></AxisMover></Icon>
+                            </Button>
+                        </RadButton>
+                        <RadButton angle={axesAngles.x} radius={rInner}>
+                            <Button onClick={()=>{gizmo.current.snapAlongAxis('x')}}>
+                                <Icon angle={axesAngles.x}><AxisMover color="crimson"></AxisMover></Icon>
+                            </Button>
+                        </RadButton>
                     </>
                     : 
                     <></>
-                 }
+                }
 
-                <RadButton angle={baseAngle + sectionAngle} radius={r}>
-                        <Button onClick={()=>{}}><Label>AAAbbb</Label><></></Button>
-                        <Button onClick={()=>{console.log('clack')}}><Icon><AxisMover/></Icon><Label>123456789</Label></Button>
-                        <Button onClick={()=>{}}><Icon><AxisMover/></Icon><></></Button>
+                <RadButton angle={baseAngle + sectionAngle*2} radius={r}>
+                    <Button onClick={() => {setGizmoMode(GizmoMode.Translate)}} isSelectedLink={gizmoMode==GizmoMode.Translate}>
+                        <Icon bootstrap="arrows-move"></Icon>
+                    </Button>
                 </RadButton>
-                <RadButton angle={baseAngle} radius={r}><Button onClick={()=>{}}><Icon><AxisMover/></Icon><></></Button></RadButton>
-                <RadialButton angle={baseAngle + sectionAngle*2} radius={r} onClick={() => {setGizmoMode(GizmoMode.Translate)}} isSelected={gizmoMode==GizmoMode.Translate} icon="arrows-move"/>
-                <RadialButton angle={baseAngle + sectionAngle*3} radius={r} onClick={() => {setGizmoMode(GizmoMode.Rotate)}} isSelected={gizmoMode==GizmoMode.Rotate} icon="arrow-repeat"/>
-                <RadialButton angle={baseAngle + sectionAngle*4} radius={r} onClick={() => {setGizmoMode(GizmoMode.Scale)}} isSelected={gizmoMode==GizmoMode.Scale} icon="bounding-box-circles"/>
-                <RadialButton inactive={gizmoMode!==GizmoMode.Scale || !gizmoScaling} angle={baseAngle + sectionAngle*6} radius={r} onClick={()=>{setGizmoScaling(false)}} icon="align-start"/>
-                <RadialButton inactive={gizmoMode!==GizmoMode.Scale || gizmoScaling} angle={baseAngle + sectionAngle*6} radius={r} onClick={()=>{setGizmoScaling(true)}} icon="align-center"/>
-                
-                {(gizmoSpace == GizmoSpace.World) ? 
-                    <RadialButton angle={baseAngle + sectionAngle*7} radius={r} onClick={()=>{setGizmoSpace(GizmoSpace.Local)}} icon="box"/>
-                    :
-                    <RadialButton angle={baseAngle + sectionAngle*7} radius={r} onClick={()=>{setGizmoSpace(GizmoSpace.World)}} icon="globe2"/>
-                }
-                {
-                }
-                <RadialButton angle={baseAngle + sectionAngle*9} radius={r} onClick={()=>{duplicateNode()}} icon="copy"/>
-                <RadialButton angle={baseAngle + sectionAngle*10} radius={r} onClick={()=>{deleteNode()}} icon="trash3"/>
-                <ExpandableRadialButton inactive={gizmoMode!==GizmoMode.Translate} angle={baseAngle + sectionAngle*6} radius={r} onClick={setSnapDist} options={[{text: 'free', value: 0}, {text: '0.1m', value: 0.1}, {text: '0.2m', value: 0.2}, {text: '0.5m', value: 0.5}, {text: '1m', value: 1}, {text: '2m', value: 2}]}/>
-                <ExpandableRadialButton inactive={gizmoMode!==GizmoMode.Rotate} angle={baseAngle + sectionAngle*6} radius={r} onClick={setSnapAngle} options={[{text: 'free', value: 0}, {text: '15°', value: 15}, {text: '30°', value: 30}, {text: '45°', value: 45}, {text: '60°', value: 60}, {text: '90°', value: 90}]}/>
+                <RadButton angle={baseAngle + sectionAngle*3} radius={r}>
+                    <Button onClick={() => {setGizmoMode(GizmoMode.Rotate)}} isSelectedLink={gizmoMode==GizmoMode.Rotate}>
+                        <Icon bootstrap="arrow-repeat"></Icon>
+                    </Button>
+                </RadButton>
+                <RadButton angle={baseAngle + sectionAngle*4} radius={r}>
+                    <Button onClick={() => {setGizmoMode(GizmoMode.Scale)}} isSelectedLink={gizmoMode==GizmoMode.Scale}>
+                        <Icon bootstrap="bounding-box-circles"></Icon>
+                    </Button>
+                </RadButton>
+
+                {/* gizmo mode specific buttons */}
+                <RadButton angle={baseAngle + sectionAngle*6} radius={r} invisible={gizmoMode !== GizmoMode.Translate}>
+                    <Button onClick={()=>{setSnapDist(0)}} selectable={true}><Label>free</Label></Button>
+                    <Button onClick={()=>{setSnapDist(0.1)}} selectable={true}><Label>0.1m</Label></Button>
+                    <Button onClick={()=>{setSnapDist(0.2)}} selectable={true}><Label>0.2m</Label></Button>
+                    <Button onClick={()=>{setSnapDist(0.5)}} selectable={true}><Label>0.5m</Label></Button>
+                    <Button onClick={()=>{setSnapDist(1)}} selectable={true}><Label>1m</Label></Button>
+                    <Button onClick={()=>{setSnapDist(2)}} selectable={true}><Label>2m</Label></Button>
+                </RadButton>
+                <RadButton angle={baseAngle + sectionAngle*6} radius={r} invisible={gizmoMode !== GizmoMode.Rotate}>
+                    <Button onClick={()=>{setSnapAngle(0)}} selectable={true}><Label>free</Label></Button>
+                    <Button onClick={()=>{setSnapAngle(15)}} selectable={true}><Label>15°</Label></Button>
+                    <Button onClick={()=>{setSnapAngle(30)}} selectable={true}><Label>30°</Label></Button>
+                    <Button onClick={()=>{setSnapAngle(45)}} selectable={true}><Label>45°</Label></Button>
+                    <Button onClick={()=>{setSnapAngle(60)}} selectable={true}><Label>60°</Label></Button>
+                    <Button onClick={()=>{setSnapAngle(90)}} selectable={true}><Label>90°</Label></Button>
+                </RadButton>
+                <RadButton angle={baseAngle + sectionAngle*6} radius={r} invisible={gizmoMode !== GizmoMode.Scale}>
+                    <Button onClick={()=>{setGizmoScaling(true)}} isSelectedLink={gizmoScaling}><Icon bootstrap="align-center"/></Button>
+                    <Button onClick={()=>{setGizmoScaling(false)}} isSelectedLink={!gizmoScaling}><Icon bootstrap="align-start"/></Button>
+                </RadButton>
+
+                <RadButton angle={baseAngle + sectionAngle*7} radius={r}>
+                    <Button onClick={()=>{setGizmoSpace(GizmoSpace.Local)}} isSelectedLink={gizmoSpace === GizmoSpace.Local}><Icon bootstrap="box"/></Button>
+                    <Button onClick={()=>{setGizmoSpace(GizmoSpace.World)}} isSelectedLink={gizmoSpace === GizmoSpace.World}><Icon bootstrap="globe2"/></Button>
+                </RadButton>
+                <RadButton angle={baseAngle + sectionAngle*9} radius={r}>
+                    <Button onClick={()=>{duplicateNode()}}><Icon bootstrap="copy"/></Button>
+                </RadButton>
+                <RadButton angle={baseAngle + sectionAngle*10} radius={r}>
+                    <Button onClick={()=>{deleteNode()}}><Icon bootstrap="trash3"/></Button>
+                </RadButton>
             </MovingButton>
             <CreateDialog dialogHandle={createHandle} scene={scene.current} linkedBtnId="create-btn"/>
         </div>
