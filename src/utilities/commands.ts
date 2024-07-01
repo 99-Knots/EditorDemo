@@ -5,6 +5,32 @@ import { Scene } from "@babylonjs/core/scene";
 
 import { TransformOrient } from "../components/GizmoManager";
 
+const handleObjectInScene = (obj: any, scene: Scene, remove?: boolean) => {
+    if (obj.getClassName() == 'TransformNode')
+    {
+        if (remove){
+            scene.removeTransformNode(obj as TransformNode);
+        }
+        else {
+            if (!scene.transformNodes.find(n => n==obj))
+                scene.addTransformNode(obj as TransformNode);
+        }
+        obj.getChildren().forEach(c => {
+            handleObjectInScene(c, scene, remove);
+        });
+    }
+    else if (obj.getClassName() == 'Mesh' || obj.getClassName() == 'AbstractMesh') {
+        if (remove) {
+            scene.removeMesh(obj as AbstractMesh, true);
+        }
+        else {
+            if (!scene.meshes.find(m => m==obj)) //avoid adding mesh twice
+                scene.addMesh(obj as AbstractMesh, true);
+        }
+    }
+}
+
+
 interface Command {
     name: string;
     execute(): void;
@@ -103,30 +129,17 @@ export class CreateObjectCommand implements Command {
     }
 
     execute(): void {
-        const hit = this.scene.pickWithRay(this.scene.activeCamera.getForwardRay());    //spawn
-        this.obj.position = this.obj.position.add(hit.pickedPoint);
-        const yOffset = this.obj.position.y-this.obj.getHierarchyBoundingVectors(true).min.y;
-        if (Math.abs(yOffset) > 0) {
-            this.obj.position = this.obj.position.add(new Vector3(0, yOffset, 0));
-        }
+        //const hit = this.scene.pickWithRay(this.scene.activeCamera.getForwardRay());    //spawn
+        //this.obj.position = this.obj.position.add(hit.pickedPoint);
+        //const yOffset = this.obj.position.y-this.obj.getHierarchyBoundingVectors(true).min.y;
+        //if (Math.abs(yOffset) > 0) {
+        //    this.obj.position = this.obj.position.add(new Vector3(0, yOffset, 0));
+        //}
+        handleObjectInScene(this.obj, this.scene);
     }
 
     undo(): void {
-        
-        const removeFromScene = (obj: any) => {
-            if (obj.getClassName() == 'TransformNode') {
-                this.scene.removeTransformNode(obj as TransformNode);
-                obj.getChildren().forEach( c => {
-                    removeFromScene(c);
-                });
-            }
-            else if (obj.getClassName() == 'Mesh' || obj.getClassName() == 'AbstractMesh') {
-                this.scene.removeMesh(obj as AbstractMesh, true);
-            }
-        }
-        //this.obj.getScene().removeTransformNode(this.obj);
-        //this.obj.getScene().removeMesh(this.obj as AbstractMesh, true);
-        removeFromScene(this.obj);
+        handleObjectInScene(this.obj, this.scene, true);
     }
 }
 
@@ -149,24 +162,11 @@ export class DeleteObjectCommand implements Command {
     }
 
     execute(): void {
-        this.obj.getScene().removeTransformNode(this.obj);
-        this.obj.getScene().removeMesh(this.obj as AbstractMesh, true);
+        handleObjectInScene(this.obj, this.scene, true);
     }
 
     undo(): void {
-        const addToScene = (obj: any) => {
-            if (obj.getClassName() == 'TransformNode')
-            {
-                this.scene.addTransformNode(obj as TransformNode);
-                obj.getChildren().forEach(c => {
-                    addToScene(c)
-                });
-            }
-            else if (obj.getClassName() == 'Mesh' || obj.getClassName() == 'AbstractMesh') {
-                this.scene.addMesh(obj as AbstractMesh, true)
-            }
-        }
-        addToScene(this.obj)
+        handleObjectInScene(this.obj, this.scene);
     }
 }
 
