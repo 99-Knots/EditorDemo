@@ -241,6 +241,16 @@ const CanvasRenderer: React.ForwardRefRenderFunction<CanvasHandle, CanvasProps> 
             case "torus":
                 mesh = MeshBuilder.CreateTorus('torus', {diameter: 0.8, thickness: 0.2, tessellation: 32}, scene.current)
         }
+        const ray =scene.current.activeCamera.getForwardRay(length=50);
+        ray.direction.normalize();
+        const hit = scene.current.pickWithRay(ray);
+        // move the mesh to where the ray first hits something. If nothing is hit, move it to the point along the ray that is closest to the origin
+        mesh.position = mesh.position.add(hit.pickedPoint ?? ray.origin.add(ray.direction.scale(Vector3.Dot(ray.origin.negate(), ray.direction))));
+
+        const yOffset = mesh.position.y-mesh.getHierarchyBoundingVectors(true).min.y;
+        if (Math.abs(yOffset) > 0) {
+            mesh.position = mesh.position.add(new Vector3(0, yOffset, 0));
+        }
         Commands().execute(new CreateObjectCommand(mesh));
     }
 
