@@ -10,6 +10,11 @@ html, body {
     padding: 0px;
 }
 
+#react-root {
+    height: 100%;
+    width: 100%;
+}
+
 .main {
     position: relative;
     overflow: hidden;
@@ -17,21 +22,11 @@ html, body {
     height: 100%;
 }
 
-#react-root {
-    height: 100%;
-    width: 100%;
-}
-
 .babylon-canvas {
     width: 100%;
     height: 100%;
     outline: none;
     position: relative;
-}
-
-.gizmo-mode-switch {
-    position: absolute;
-    transition: max-width 1s, left 0.2s, top 0.2s;
 }
 
 .side-menu {
@@ -46,14 +41,14 @@ html, body {
     gap: 0.3em;
 }
 
-.gizmo-gui-center {
+.anchor {
     user-select: none;
     position: absolute;
     color: whitesmoke;
     pointer-events: none;
 }
 
-.gizmo-gui-center>svg {
+.anchor>svg {
     color: dimgray;
     pointer-events: none;
 }
@@ -146,7 +141,7 @@ html, body {
     transition: opacity 0.1s 1s;
 }
 
-@media (hover: hover) {
+@media (hover) {
     .tooltip {
         transition: opacity 0s 0s;
     }

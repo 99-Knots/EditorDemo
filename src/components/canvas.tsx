@@ -24,9 +24,6 @@ import floor_norm from '../../assets/floortiles_normal.png';
 
 
 type CanvasProps = {
-    //setSelectedNodes: (_: TransformNode[]) => void,
-    //propertiesSidebarHandle: React.RefObject<PropertiesSidebarHandle>,
-    //loadingState: [boolean, (_: boolean) => void],
 }
 
 export type CanvasHandle = {
@@ -244,9 +241,11 @@ const CanvasRenderer: React.ForwardRefRenderFunction<CanvasHandle, CanvasProps> 
         const ray =scene.current.activeCamera.getForwardRay(length=50);
         ray.direction.normalize();
         const hit = scene.current.pickWithRay(ray);
+
         // move the mesh to where the ray first hits something. If nothing is hit, move it to the point along the ray that is closest to the origin
         mesh.position = mesh.position.add(hit.pickedPoint ?? ray.origin.add(ray.direction.scale(Vector3.Dot(ray.origin.negate(), ray.direction))));
 
+        // place object *on* the hit point to ensure it's visible in the scene
         const yOffset = mesh.position.y-mesh.getHierarchyBoundingVectors(true).min.y;
         if (Math.abs(yOffset) > 0) {
             mesh.position = mesh.position.add(new Vector3(0, yOffset, 0));
@@ -317,7 +316,6 @@ const CanvasRenderer: React.ForwardRefRenderFunction<CanvasHandle, CanvasProps> 
     const sectionAngle = 90/6 * (isVertical? -1 : 1);
     const baseAngle = isVertical ? -45 : 0
 
-    // todo: maybe also use z-index to represent axis overlap in correct order?
     return (
         <div className="main"> 
             <canvas className='babylon-canvas' ref={canvas}/>

@@ -1,4 +1,4 @@
-import { Vector3, Matrix, Quaternion } from "@babylonjs/core/Maths";
+import { Matrix, Quaternion } from "@babylonjs/core/Maths";
 import { TransformNode } from "@babylonjs/core/Meshes/transformNode";
 import { AbstractMesh } from "@babylonjs/core/Meshes/abstractMesh"
 import { Scene } from "@babylonjs/core/scene";
@@ -91,7 +91,7 @@ export class TransformCommand implements Command{
     /**
      * Creates a Command for the transformation of a node
      * @param nodeObj the node in the new transformation
-     * @param oldTransform world matrix of the node before the transformation
+     * @param oldTransform world matrix and orientation of the node before the transformation
      */
     constructor(nodeObj: TransformNode, oldTransform: TransformOrient) {
         this.name = 'Move Object';
@@ -129,12 +129,6 @@ export class CreateObjectCommand implements Command {
     }
 
     execute(): void {
-        //const hit = this.scene.pickWithRay(this.scene.activeCamera.getForwardRay());    //spawn
-        //this.obj.position = this.obj.position.add(hit.pickedPoint);
-        //const yOffset = this.obj.position.y-this.obj.getHierarchyBoundingVectors(true).min.y;
-        //if (Math.abs(yOffset) > 0) {
-        //    this.obj.position = this.obj.position.add(new Vector3(0, yOffset, 0));
-        //}
         handleObjectInScene(this.obj, this.scene);
     }
 

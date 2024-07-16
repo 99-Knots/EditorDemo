@@ -142,11 +142,11 @@ export const SideMenu = ( props: {
     children?: React.ReactNode,
 }) => {
     return(
-        <div className="side-menu" style={{fontSize: `${props.buttonSize*0.66}rem`}}>
+        <aside className="side-menu" style={{fontSize: `${props.buttonSize*0.66}rem`}}>
             <buttonSizeContext.Provider value={props.buttonSize}>
                 {props.children}
             </buttonSizeContext.Provider>
-        </div>
+        </aside>
     )
 }
 
@@ -172,7 +172,7 @@ export const Anchor = (props: {
     }, {minAngle: Infinity, maxAngle: -Infinity});
     
     return (
-        <div className="gizmo-gui-center" style={{top: props.y??0, left: props.x??0, display: props.hidden?"none":"block", fontSize: `${props.buttonSize}rem`}}>
+        <div className="anchor" style={{top: props.y??0, left: props.x??0, display: props.hidden?"none":"block", fontSize: `${props.buttonSize}rem`}}>
             <buttonSizeContext.Provider value={props.buttonSize}>
                 <CircleCut radius={radius} angle1={minAngle} angle2={maxAngle}/>
                 {

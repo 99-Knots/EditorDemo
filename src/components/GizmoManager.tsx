@@ -1,10 +1,8 @@
 import { TransformNode } from "@babylonjs/core/Meshes/transformNode";
 import { AbstractMesh } from "@babylonjs/core/Meshes/abstractMesh";
 import { Mesh } from "@babylonjs/core/Meshes/mesh";
-import { Vector3, Quaternion, Color3, Matrix, Vector4 } from "@babylonjs/core/Maths/math";
+import { Vector3, Quaternion, Color3, Matrix} from "@babylonjs/core/Maths/math";
 import { Ray } from '@babylonjs/core/Culling/ray'
-import { RayHelper } from "@babylonjs/core";
-import { MeshBuilder } from '@babylonjs/core/Meshes/meshBuilder'
 import { Scene } from "@babylonjs/core/scene";
 import { UtilityLayerRenderer } from "@babylonjs/core/Rendering";
 import { HighlightLayer } from '@babylonjs/core/Layers/highlightLayer';
@@ -47,7 +45,6 @@ const toTranslationMatrix = (v: Vector3) => {
 }
 
 const projectToScreen = (p: Vector3, scene: Scene) => {
-    
     const engine = scene.getEngine();
     const camera = scene.activeCamera;
     return Vector3.Project(p, Matrix.Identity(), scene.getTransformMatrix(), camera.viewport.toGlobal(engine.getRenderWidth(), engine.getRenderHeight()))
@@ -64,12 +61,12 @@ export class GizmoManager {
     private rotationGizmo: RotationGizmo;                   // gizmo for rotation
     private boundingBoxGizmo: CustomBoundingBoxGizmo;       // gizmo for scaling
     private currentGizmo: Gizmo;                            // the gizmo currently active
-    private layer: UtilityLayerRenderer;
-    private hlLayer: HighlightLayer;
-    private dragging: (b: boolean) => void;
-    private rootScreenPos: (v: Vector3) => void;
-    private setMultiSelect: (b: boolean) => void;
-    private _inMultiselectMode: boolean;
+    private layer: UtilityLayerRenderer;                    // layer on which the gizmo is rendered
+    private hlLayer: HighlightLayer;                        // laye for the selection highlights
+    private dragging: (b: boolean) => void;                 // setter function for when the gizmo is being actively dragged
+    private rootScreenPos: (v: Vector3) => void;            // setter function for the roots position projected to screen space
+    private setMultiSelect: (b: boolean) => void;           // setter function for when the gizmo is in multi select mode
+    private _inMultiselectMode: boolean;                    // whether selecting a node adds it to the selection or shifts the selection to it
 
     public set inMultiSelectMode(b: boolean) {
         this._inMultiselectMode = b;
@@ -117,6 +114,10 @@ export class GizmoManager {
     }
 
 
+    /**
+     * switches the active transformation mode
+     * @param mode 
+     */
     public changeMode(mode: GizmoMode) {
         this.rotationGizmo.attachedNode = null;
         this.positionGizmo.attachedNode = null;
@@ -140,6 +141,10 @@ export class GizmoManager {
         }
     }
 
+    /**
+     * changes the reference space for transformations
+     * @param space 
+     */
     public changeSpace(space: GizmoSpace) {
         switch (space) {
             case (GizmoSpace.World): 
@@ -149,8 +154,8 @@ export class GizmoManager {
                 this.inWorldSpace = false;
                 break;
         }
-        this.setRootPosition();
-        this.setRootRotation();
+        this.calcRootPosition();
+        this.calcRootRotation();
         this.positionGizmo.updateGizmoRotationToMatchAttachedMesh = !this.inWorldSpace;
         this.rotationGizmo.updateGizmoRotationToMatchAttachedMesh = !this.inWorldSpace;
         this.boundingBoxGizmo.updateGizmoRotationToMatchAttachedMesh = !this.inWorldSpace;
@@ -177,6 +182,11 @@ export class GizmoManager {
         return projectToScreen(this.root.position, this.root.getScene());
     }
 
+    /**
+     * Returns the angle between the gizmo's axis and the negative y-axis of the screen
+     * @param axis 
+     * @returns angle in degree
+     */
     public getSingleAxisScreenAngle(axis: 'x'|'y'|'z') {
         let v = Vector3.Right();
         switch (axis) {
@@ -195,11 +205,15 @@ export class GizmoManager {
         return -Math.atan2(-p.x, -p.y) * 180/Math.PI;   // swap x and y and negate for angle along negative y-axis
     };
 
+    /**
+     * Returns the angle between each rendered axis and the negative y-axis of the screen
+     * @returns Vector3 with angles of respective axis
+     */
     public getAxesScreenAngles() {
         return new Vector3(this.getSingleAxisScreenAngle('x'), this.getSingleAxisScreenAngle('y'), this.getSingleAxisScreenAngle('z'));
     }
 
-    public setRootPosition() {
+    public calcRootPosition() {
         if (this.nodes.length > 0) {
             let minmax = this.nodes[0][0].getHierarchyBoundingVectors(true);
             let min = minmax.min;
@@ -213,28 +227,30 @@ export class GizmoManager {
             this.root.position = min.add(max).scale(0.5);
             this.rootScreenPos(this.getRootScreenPosition());
         }
+        return this.root.position;
     }
 
-    public setRootRotation() {
+    public calcRootRotation() {
         if (this.nodes.length >= 1 && !this.inWorldSpace) {
             this.root.rotationQuaternion = this.nodes[0][0].rotationQuaternion.clone();
         }
         else {
             this.root.rotationQuaternion.set(0, 0, 0, 1);
         }
+        return this.root.rotationQuaternion;
     }
 
     public addNode(node: TransformNode) {
         if (!this.nodes.find(n => n[0].uniqueId == node.uniqueId)) {    // only add node if it wasn't already attached
             node.computeWorldMatrix(true);
-            if (!node.rotationQuaternion)   // use nodes rotation Quaternion to store orientation
+            if (!node.rotationQuaternion)   // use a nodes rotation Quaternion to store orientation for undo/redo commands
                 node.rotationQuaternion = Quaternion.FromRotationMatrix(node.getWorldMatrix().getRotationMatrix());
             // add the node to the list of attached nodes, together with its world matrix
             this.nodes.push([node, {matrix: node.getWorldMatrix().clone(), orientation: node.rotationQuaternion}]);
             this.hlLayer.addMesh(node as Mesh, new Color3(1, 0.9, 0));
 
-            this.setRootPosition();
-            this.setRootRotation();
+            this.calcRootPosition();
+            this.calcRootRotation();
             this.currentGizmo.attachedNode = this.root;
         }
         if (this.currentGizmo == this.boundingBoxGizmo) {   // if scaling is selected update the bounding box
@@ -250,8 +266,8 @@ export class GizmoManager {
             this.currentGizmo.attachedNode = null;
         }
 
-        this.setRootPosition();
-        this.setRootRotation();
+        this.calcRootPosition();
+        this.calcRootRotation();
     }
 
     public removeAllNodes() {
@@ -270,13 +286,17 @@ export class GizmoManager {
         return Rmat;
     }
 
-    public getBoundingMinMax(rotationMatrix?: Matrix) {
-        let Rmat = rotationMatrix ?? this.getOrientationMatrix();
+    /**
+     * Get min and max vector of the bounding box of the selected nodes
+     * @param orientationMatrix orientaion of the bounding box (default: the root nodes orientation)
+     * @returns min and max Vector3
+     */
+    public getBoundingMinMax(orientationMatrix?: Matrix) {
+        let Rmat = orientationMatrix ?? this.getOrientationMatrix();
         let minmax = {min: Vector3.Zero(), max: Vector3.Zero()};
         const [first, ...rest] = this.nodes;
         if (first) {
             let nodeMinMax = {min: Vector3.Zero(), max: Vector3.Zero()};
-            //let Rmat = this.getOrientationMatrix();
             let RmatInv = Rmat.clone().invert();
 
             first[0].freezeWorldMatrix(first[0].getWorldMatrix().multiply(RmatInv));
@@ -300,24 +320,19 @@ export class GizmoManager {
     /**
      * Approximation for moving the selected objects in a direction until one collides with another mesh.
      * Cast a number of rays from the objects' Bounding Box's face into a direction and find the one that collides first.
+     * does not work with placing things on the narrow side of planes.
      * @param moveOppositeDirection Determines wether the objects shall be moved in the direction the gizmo's arrow is pointing or the opposite one. False by default.
      * @param rayLength How long the rays for collision detection should be in meters. 50 by default.
      * @param numberOfRays The number of rays, that shall be used for approximating when an object would hit something. 100 by default.
      * @param numberOfRetries The number of times the program should try to generate a valid ray before moving to the next one. 5 by default.
      */
     snapAlongAxis(axis: 'x' | 'y' | 'z', moveOppositeDirection?: boolean, rayLength?: number, numberOfRays?: number, numberOfRetries?: number) {
-        // does not work with placing things on the narrow side of planes
 
         const scene = this.layer.originalScene;
-
-        //let axis = 'y';
         let moveForward = !moveOppositeDirection;
         let direction = Vector3.Up();
 
         const quat = this.root.rotationQuaternion;
-        const qinv = quat.invert();
-        const rotAxis = new Vector3(qinv.x, qinv.y, qinv.z).normalize();
-        const rotAngle = Math.acos(qinv.w) * 2;
 
         if (!axis) return;
         if (axis == 'x') {
@@ -351,8 +366,6 @@ export class GizmoManager {
             let c: Vector3;
             let dist: Vector3;
 
-            let shortestRay: Ray;
-
             if (axis == 'x') {
                 a = new Vector3(0, minmax.max.y - minmax.min.y, 0);
                 b = new Vector3(0, 0, minmax.max.z - minmax.min.z);
@@ -363,13 +376,11 @@ export class GizmoManager {
                 b = new Vector3(0, 0, minmax.max.z - minmax.min.z);
                 c = new Vector3(0, minmax.max.y - minmax.min.y, 0);
             }
-            else {
+            else {  // if axis == 'z'
                 a = new Vector3(minmax.max.x - minmax.min.x, 0, 0);
                 b = new Vector3(0, minmax.max.y - minmax.min.y, 0);
                 c = new Vector3(0, 0, minmax.max.z - minmax.min.z);
             }
-            //minmax.min.rotateByQuaternionAroundPointToRef(quat, this.root.position, minmax.min);
-            //minmax.max.rotateByQuaternionAroundPointToRef(quat, this.root.position, minmax.max);
             minmax.min.rotateByQuaternionToRef(quat, minmax.min);
             minmax.max.rotateByQuaternionToRef(quat, minmax.max);
             a.rotateByQuaternionToRef(quat, a);
@@ -392,10 +403,6 @@ export class GizmoManager {
                     counter++;
                     rayOrigin = minmax.min.add(a.scale(Math.random())).add(b.scale(Math.random()));
                     rayOrigin.addInPlace(moveForward ? c.add(offset) : offset.negate());
-
-                    // draw generated rays on bounding box face
-                    //const rayhelper = new RayHelper(new Ray(rayOrigin, moveForward ? direction : direction.negate(), 50));
-                    //rayhelper.show(scene, Color3.Red());
 
                     const backcheckRay = new Ray(rayOrigin, moveForward ? direction.negate() : direction, rayLength ?? 50);
                     const hit = scene.pickWithRay(backcheckRay, mesh =>!! meshes.find(m => m==mesh));
@@ -420,40 +427,25 @@ export class GizmoManager {
                         const newDist = hit.pickedPoint.subtract(rayOrigin);
                         if (!dist || (newDist.length() < dist.length())) {
                             dist = newDist;
-                            shortestRay = new Ray(rayOrigin, moveForward ? direction : direction.negate(), newDist.length());
                         }
-                        // draw the valid rays from the object face
-                        //const rayhelper = new RayHelper(new Ray(rayOrigin, moveForward ? direction : direction.negate(), newDist.length()));
-                        //rayhelper.show(scene);
                     }
                 }
             }
              if (dist) {
-                // draw the ray that is used as a base for the movement
-                //const rayhelper = new RayHelper(shortestRay);
-                //rayhelper.show(scene, Color3.Red());
-
                 this.dragging(true);
                 const cList = [];
                 const Tmat = toTranslationMatrix(dist);
                 this.nodes.forEach(n => {
                     n[0].freezeWorldMatrix(n[0].getWorldMatrix().multiply(Tmat))
-                    //n[0].position = n[1].position.add(dist);
                     cList.push(new TransformCommand(n[0], n[1])); 
                     n[1].matrix = n[0].getWorldMatrix().clone();
                     //n[0].getChildren().forEach( c => {c.computeWorldMatrix(true)});
                 });
                 Commands().execute(new GroupCommand(cList));
-                this.setRootPosition();
+                this.calcRootPosition();
                 this.dragging(false);
                 
              }
-        
-            // draw the bounding box for the ray generation
-            //let l = MeshBuilder.CreateLines('lines', {points:
-            //    [minmax.min, minmax.min.add(a), minmax.min.add(a).add(b), minmax.min.add(b), minmax.min,
-            //    minmax.min.add(c), minmax.max.subtract(a), minmax.max.subtract(a).subtract(c), minmax.max.subtract(a), minmax.max, minmax.max.subtract(c), minmax.max, minmax.max.subtract(b), minmax.max.subtract(b).subtract(c), minmax.max.subtract(b), minmax.min.add(c)]
-            //}, this.layer.utilityLayerScene)
         }
     }
 
@@ -502,10 +494,10 @@ export class GizmoManager {
                 let Rmat = Matrix.Identity();
                 quat.toRotationMatrix(Rmat);
 
-                let mat = n[1].matrix.multiply(toTranslationMatrix(dist.negate()));    // move to Origin
-                mat = mat.multiply(Rmat);                                       // rotate
-                mat = mat.multiply(toTranslationMatrix(dist))                   // undo previous translation
-                n[0].rotationQuaternion = quat.multiply(n[1].orientation);     // store the orientation of the node
+                let mat = n[1].matrix.multiply(toTranslationMatrix(dist.negate()));     // move to Origin
+                mat = mat.multiply(Rmat);                                               // rotate
+                mat = mat.multiply(toTranslationMatrix(dist))                           // undo previous translation
+                n[0].rotationQuaternion = quat.multiply(n[1].orientation);              // store the orientation of the node
                 n[0].freezeWorldMatrix(mat);
             });
         });
@@ -518,7 +510,7 @@ export class GizmoManager {
                 n[1].orientation = n[0].rotationQuaternion;
             });
             Commands().execute(new GroupCommand(cList));
-            this.setRootRotation();     // reset the root to a neutral orientation
+            this.calcRootRotation();     // reset the root to a neutral orientation
             this.dragging(false);
         });
     }
@@ -588,13 +580,13 @@ class CustomBoundingBoxGizmo extends BoundingBoxGizmo {
             const axis = axisToProp(dragaxis); // scale proportions
             boxes[i].removeBehavior(ogBehaviour);
 
-            let dragFactor: number;         // total distance dragged by the mouse; positive if outward's, negative if inwards
+            let dragFactor: number;     // total distance dragged by the mouse; positive if outward's, negative if inwards
             let initialDist: Vector3;   // distance between the center and were the dragging started (with slight 'wobble' from Mouse to avoid division through zero)
             let center: Vector3;        // center of the bounding box in world coordinates
             let d: Vector3;             // same as initialDist but without wobble; distance between center and selected box
 
             const dragBehavior = new PointerDragBehavior({ dragAxis: dragaxis });
-            dragBehavior.dragButtons = [0]  // only drag on left mouse button
+            dragBehavior.dragButtons = [0]  // only drag on left mouse button to avoid accidental triggers by camera movement
             dragBehavior.updateDragPlane = false;
             dragBehavior.moveAttached = false;
 
@@ -693,8 +685,8 @@ class CustomBoundingBoxGizmo extends BoundingBoxGizmo {
 
             this._updateRotationSpheres();
             this._updateScaleBoxes();
-            this.gizmoManager.setRootPosition();
-            this.gizmoManager.setRootRotation();
+            this.gizmoManager.calcRootPosition();
+            this.gizmoManager.calcRootRotation();
         }
 
     }
