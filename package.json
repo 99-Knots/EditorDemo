@@ -28,7 +28,7 @@
     "typescript": "^5.4.5",
     "webpack": "^5.97.1",
     "webpack-cli": "^5.1.4",
-    "webpack-dev-server": "^5.0.4"
+    "webpack-dev-server": "^5.2.1"
   },
   "dependencies": {
     "css-loader": "^7.1.2",
