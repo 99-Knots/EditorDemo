@@ -39,6 +39,11 @@ jobs:
       - name: Setup Pages
         uses: actions/configure-pages@v5
 
+      - name: Inspect build output
+        run: |
+          du -sh ./dist
+          find ./dist | wc -l
+
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
